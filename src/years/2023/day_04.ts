@@ -1,6 +1,5 @@
-export function part_1(input: string): number {
-    const lines = input.split("\n")
-
+export const INPUT_SPLIT = "\n"
+export function part_1(lines: string[]): number {
     let sum = 0
 
     const cards = lines.map(l => {
@@ -29,8 +28,7 @@ export function part_1(input: string): number {
 }
 
 
-export function part_2(input: string): number {
-    const lines = input.split("\n")
+export function part_2(lines: string[]): number {
 
     const cards = lines.map((l, i) => {
         const [winning_line, own_line] = l.split(" | ")

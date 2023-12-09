@@ -1,3 +1,4 @@
+export const INPUT_SPLIT = "\n"
 
 type Cards = "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "T" | "J" | "Q" | "K" | "A"
 interface Deck {
@@ -6,9 +7,7 @@ interface Deck {
     type: number
 }
 
-export function part_1(input: string): number {
-    const lines = input.split("\n")
-
+export function part_1(lines: string[]): number {
     const card_types = ["2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K", "A"]
 
     const decks: Deck[] = lines.map(l => {
@@ -76,9 +75,7 @@ export function part_1(input: string): number {
 }
 
 
-export function part_2(input: string): number {
-    const lines = input.split("\n")
-
+export function part_2(lines: string[]): number {
     const card_types = ["J", "2", "3", "4", "5", "6", "7", "8", "9", "T", "Q", "K", "A"]
 
     const decks: Deck[] = lines.map(l => {

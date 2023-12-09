@@ -1,5 +1,5 @@
-export function part_1(input: string): number {
-    const lines = input.split("\n")
+export const INPUT_SPLIT = "\n"
+export function part_1(lines: string[]): number {
     const number_regex = /\d+/g
 
     const times = []
@@ -36,9 +36,7 @@ export function part_1(input: string): number {
 }
 
 
-export function part_2(input: string): number {
-    const lines = input.split("\n")
-
+export function part_2(lines: string[]): number {
     const time = parseInt(/\d+/g.exec(lines[0]!.replaceAll(" ", ""))![0]!)
     const distance = parseInt(/\d+/g.exec(lines[1]!.replaceAll(" ", ""))![0]!)
 

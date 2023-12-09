@@ -1,6 +1,6 @@
-export function part_1(input: string): number {
-    const codes = input.split("\n")
+export const INPUT_SPLIT = "\n"
 
+export function part_1(codes: string[]): number {
     let sum = 0
 
     for(let code of codes) {
@@ -20,9 +20,7 @@ export function part_1(input: string): number {
     return sum
 }
 
-export function part_2(input: string): number {
-    const codes = input.split("\n")
-
+export function part_2(codes: string[]): number {
     const nums = ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
     let sum = 0
 
