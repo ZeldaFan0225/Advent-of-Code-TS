@@ -1,6 +1,5 @@
-export function part_1(input: string): number {
-    const lines = input.split("\n\n")
-
+export const INPUT_SPLIT = "\n\n"
+export function part_1(lines: string[]): number {
     const seeds_string = lines.splice(0, 1)[0]
     const categories: {source_start: number, source_end: number, diff: number}[][] = []
     const seeds = seeds_string!.split(" ").slice(1).map(n => parseInt(n))
@@ -34,8 +33,7 @@ export function part_1(input: string): number {
 }
 
 
-export function part_2(input: string): number {
-    const lines = input.split("\n\n")
+export function part_2(lines: string[]): number {
 
     const seeds_string = lines.splice(0, 1)[0]
     const categories: {source_start: number, source_end: number, diff: number}[][] = []

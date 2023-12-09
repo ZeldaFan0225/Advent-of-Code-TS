@@ -1,5 +1,5 @@
-export function part_1(input: string): number {
-    const [instruction, nodes_text] = input.split("\n\n")
+export const INPUT_SPLIT = "\n\n"
+export function part_1([instruction, nodes_text]: string[]): number {
     const nodes_lines = nodes_text!.split("\n")
     const nodes_regex = /^\(([A-Z]{3}), ([A-Z]{3})\)$/
 
@@ -24,8 +24,7 @@ export function part_1(input: string): number {
 }
 
 
-export function part_2(input: string): number {
-    const [instruction, nodes_text] = input.split("\n\n")
+export function part_2([instruction, nodes_text]: string[]): number {
     const nodes_lines = nodes_text!.split("\n")
     const nodes_regex = /^\(([A-Z0-9]{3}), ([A-Z0-9]{3})\)$/
 

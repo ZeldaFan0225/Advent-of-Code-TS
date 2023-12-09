@@ -1,5 +1,5 @@
-export function part_1(input: string): number {
-    const lines = input.split("\n")
+export const INPUT_SPLIT = "\n"
+export function part_1(lines: string[]): number {
     const regex_numbers = /(\d+)/g
 
     let sum = 0
@@ -27,8 +27,7 @@ export function part_1(input: string): number {
 }
 
 
-export function part_2(input: string): number {
-    const lines = input.split("\n")
+export function part_2(lines: string[]): number {
     const gear_regex = /\*/g
     const numbers_regex = /(\d+)/g
     const before_number_regex = /\.{0,2}(\d+)$/

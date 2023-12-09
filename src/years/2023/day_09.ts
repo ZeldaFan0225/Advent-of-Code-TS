@@ -1,6 +1,5 @@
-export function part_1(input: string): number {
-    const functions = input.split("\n")
-
+export const INPUT_SPLIT = "\n"
+export function part_1(functions: string[]): number {
     const function_values = functions.map(f => f.split(" ").map(n => parseInt(n)))
 
     let sum = 0;
@@ -34,9 +33,7 @@ export function part_1(input: string): number {
 }
 
 
-export function part_2(input: string): number {
-    const functions = input.split("\n")
-
+export function part_2(functions: string[]): number {
     const function_values = functions.map(f => f.split(" ").map(n => parseInt(n)))
 
     let sum = 0

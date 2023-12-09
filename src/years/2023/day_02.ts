@@ -1,6 +1,5 @@
-export function part_1(input: string): number {
-    const games_raw = input.split("\n")
-
+export const INPUT_SPLIT = "\n"
+export function part_1(games_raw: string[]): number {
     const count = {
         red: 12,
         green: 13,
@@ -44,8 +43,7 @@ export function part_1(input: string): number {
 }
 
 
-export function part_2(input: string): number {
-    const games_raw = input.split("\n")
+export function part_2(games_raw: string[]): number {
 
     const games = games_raw.map((game) => {
         return game.replace(/Game \d+ : /, "").split("; ").map(round => {
