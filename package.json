@@ -1,0 +1,30 @@
+{
+  "name": "advent_of_code_ts",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "run": "node dist/index.js",
+    "aoc": "node dist/index.js run",
+    "aoc_compile": "npx tsc -p . && node dist/index.js run",
+    "compile": "npx tsc -p .",
+    "init_day": "node dist/index.js init_day"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ZeldaFan0225/Advent-of-Code-TS.git"
+  },
+  "author": "",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/ZeldaFan0225/Advent-of-Code-TS/issues"
+  },
+  "homepage": "https://github.com/ZeldaFan0225/Advent-of-Code-TS#readme",
+  "devDependencies": {
+    "@types/node": "^20.10.4",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "commander": "^11.1.0"
+  }
+}
