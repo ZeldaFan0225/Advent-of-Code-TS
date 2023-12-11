@@ -17,7 +17,8 @@ Days I solved:
 | 8 | ✅ | ✅ |
 | 9 | ✅ | ✅ |
 | 10 | ✅ | ✅ (with some hints) |
-| 11 | pending | pending |
+| 11 | ✅ | ✅ |
+| 12 | pending | pending |
 
 ## Following scripts are available
 
