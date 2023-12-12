@@ -5,35 +5,23 @@ interface Coordinate {
 
 export const INPUT_SPLIT = "\n";
 export function part_1(input: string[]): number {
-    return getSumOfDistances(input.map(l => l.split("")), 2);
+    return getSumOfDistances(input, 2);
 }
 
 
 export function part_2(input: string[]): number {
-    return getSumOfDistances(input.map(l => l.split("")), 1000000);
+    return getSumOfDistances(input, 1000000);
 }
 
 
-function getSumOfDistances(input: string[][], expansion_factor: number): number {
-    const horizontal_empty = getEmptyRows(input)
-    const m1: string[][] = rotateMatrix(input)
-    const vertical_empty = getEmptyRows(m1)
-    const matrix: string[][] = rotateMatrix(m1)
-
-    const galaxy_coords: Coordinate[] = []
-    matrix.forEach((l, y) => {
-        l.forEach((c, x) => {
-            if(c === "#") galaxy_coords.push({x, y})
-        })
-    })
+function getSumOfDistances(input: string[], expansion_factor: number): number {
+    const {horizontal_empty, vertical_empty, coordinates} = getMatrixData(input)
 
     let sum = 0
-    const count = galaxy_coords.length
-    const distances: Record<string, number> = {}
+    const count = coordinates.length
     for(let i = 0; i < count; i++) {
         for(let j = i + 1; j < count; j++) {
-            distances[`${i},${j}`] = getExpandedManhattanDistance(galaxy_coords[i]!, galaxy_coords[j]!, expansion_factor, vertical_empty, horizontal_empty);
-            sum += getExpandedManhattanDistance(galaxy_coords[i]!, galaxy_coords[j]!, expansion_factor, vertical_empty, horizontal_empty);
+            sum += getExpandedManhattanDistance(coordinates[i]!, coordinates[j]!, expansion_factor, vertical_empty, horizontal_empty);
         }
     }
 
@@ -55,25 +43,32 @@ function getEmptyBetween(a: Coordinate, b: Coordinate, vertical_empty: number[],
     return {empty_x, empty_y};
 }
 
-function getEmptyRows(matrix: string[][]): number[] {
-    const result: number[] = []
-    for(let i = 0; i < matrix.length; i++) {
-        if(matrix[i]?.every(c => c === ".")) {
-            result.push(i)
-        }
-    }
-    return result;
-}
-
-function rotateMatrix(matrix: string[][]) {
-    const result: string[][] = []
-    for(let i = 0; i < matrix[0]!.length; i++) {
-        result.push(matrix.map(r => r[i]!))
-    }
-    return result;
-}
-
 function getExpandedManhattanDistance(a: Coordinate, b: Coordinate, expansion_factor: number, vertical_empty: number[], horizontal_empty: number[]): number {
     const {empty_x, empty_y} = getEmptyBetween(a, b, vertical_empty, horizontal_empty)
     return (Math.abs(a.x - b.x) - empty_x + (empty_x * expansion_factor)) + (Math.abs(a.y - b.y) - empty_y + (empty_y * expansion_factor))
+}
+
+function getMatrixData(input: string[]) {
+    const horizontal_empty = []
+    const vertical_empty = []
+    const coordinates: Coordinate[] = []
+    const v_count: number[] = []
+
+    for (let i = 0; i < input.length; i++) {
+        if(input[i]!.replaceAll(".", "") === "") horizontal_empty.push(i)
+        for(let j = 0; j < input[i]!.length; j++) {
+            if(input[i]![j] === ".") v_count[j] = (v_count[j] ?? 0) + 1;
+            else {
+                coordinates.push({
+                    y: i,
+                    x: j
+                })
+            }
+        }
+    }
+    for(let i = 0; i < v_count.length; i++) {
+        if(v_count[i] === input.length) vertical_empty.push(i)
+    }
+
+    return {horizontal_empty, vertical_empty, coordinates}
 }
