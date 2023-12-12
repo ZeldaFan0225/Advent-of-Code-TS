@@ -33,7 +33,7 @@ export function part_2(input: string[]): number {
 
 function getPossibleCombinations(springs: string[], keys: number[], matched = 0): number {
     const key = `${springs.join("")} ${keys.join(",")} ${matched}`
-    if(cache[key]) return cache[key]!
+    if(cache[key] !== undefined) return cache[key]!
     let result = 0;
     // if no springs or keys left, return 1
     if(!springs.length) result = keys.length ? 0 : 1
