@@ -8,7 +8,6 @@ export function part_1(input: string[]): number {
         sum += getPossibleCombinations(springs!.split(""), keys!.split(",").map(k => parseInt(k)), 0)
     }
 
-    console.log(cache)
     return sum;
 }
 
@@ -29,7 +28,6 @@ export function part_2(input: string[]): number {
         sum +=  getPossibleCombinations(springs, keys, 0)
     }
 
-    console.log(cache)
     return sum;
 }
 
@@ -52,6 +50,7 @@ function getPossibleCombinations(springs: string[], keys: number[], matched = 0)
     if(keys.length) cache[key] = result;
     return result;
 }
+
 
 function isWorking(springs: string[], keys: number[], matched = 0): number {
     //if there are any previous matches that haven't been completed the combination is not possible
