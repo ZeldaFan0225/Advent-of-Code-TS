@@ -2,11 +2,8 @@ export const INPUT_SPLIT = "\n\n";
 export function part_1(input: string[]): number {
     let scores = 0
     for(let block of input) {
-        let s = getHorizontalScore(block)
-        console.log(s)
-        if(s === null) s = (getVerticalScore(block) ?? 0) * 100
-        console.log(s, "\n")
-        if(s === 0) console.log(block)
+        let s = getVerticalScore(block.split("\n"))
+        if(s === null) s = (getHorizontalScore(block.split("\n")) ?? 0) * 100
 
         scores += s
     }
@@ -19,75 +16,33 @@ export function part_2(input: string): number {
     return input.length
 }
 
-function getVerticalScore(input: string): number | null {
-    const lines = input.split("\n")
-    const stacks: string[][] = Array.from({length: lines.length}).map(() => []) as string[][]
-    lines.forEach((l, i) => stacks[i]?.push(l[0]!))
-    // will never be 0 as then there would not be any mirrored pattern
-    let mirror_index = null;
-    for(let i = 1; i < lines[0]!.length; i++) {
-        if(
-            // if last in stack matches with current
-            stacks.every((s, j) => s.at(-1) === lines[j]![i])
-        ) {
-            if(mirror_index === null) mirror_index = i;
-            stacks.forEach(s => s.pop())
-        } else {
-            mirror_index = null;
-            stacks.forEach((s, j) => s.push(lines[j]![i]!))
-        }
 
-        // if stacks are emty i.e. mirror pattern was at start
-        //console.log(stacks.every(s => s.length === 0))
-        if(stacks.every(s => s.length === 0)) break;
+
+function getHorizontalScore(lines: string[]): number | null {
+    const mirrored = lines.splice(0, 1)
+    let mirror_index: number | null = null;
+    while(lines.length) {
+        let i = 0
+        while(lines[i] === mirrored[i]) {
+            i++
+        }
+        if(i > 0 && (i === lines.length || i === mirrored.length)) {
+            mirror_index = mirrored.length;
+            break;
+        }
+        mirrored.unshift(lines.splice(0, 1)[0]!)
     }
 
-    return stacks.every(s => s.length !== lines[0]!.length) && mirror_index ? mirror_index : null;
+    return mirror_index
 }
 
-function getHorizontalScore(input: string): number | null {
-    const lines = input.split("\n")
-    const stacks: string[][] = Array.from({length: lines[0]!.length}).map(() => []) as string[][]
-    lines[0]!.split("").forEach((l, i) => stacks[i]?.push(l!))
-    // will never be 0 as then there would not be any mirrored pattern
-    let mirror_index = null;
-    for(let i = 1; i < lines.length; i++) {
-        stacks.forEach((s, j) => {
-            console.log(s.at(-1))
-            console.log(lines[i]![j])
-            console.log(s.at(-1) === lines[i]![j])
-        })
-        /*
-        Mismatch for pattern:
-            #......##
-            .#....#.#
-            #.#....##
-            ..#..#...
-            ..####...
-            ..####...
-            .#.##.#.#
-            .#.##.#.#
-            ..####...
-        */
-        if(
-            // if last in stack matches with current
-            stacks.every((s, j) =>
-                (s.at(-1) === lines[i]![j])
-            )
-        ) {
-            if(mirror_index === null) mirror_index = i;
-            stacks.forEach(s => s.pop())
-        } else {
-            mirror_index = null;
-            stacks.forEach((s, j) => s.push(lines[i]![j]!))
+
+function getVerticalScore(temp: string[]): number | null {
+    const lines: string[] = []
+    for(let i = 0; i < temp.length; i++) {
+        for(let j = 0; j < temp[0]!.length; j++) {
+            lines[j] = (lines[j] ?? "") + temp[i]![j]!
         }
-
-        console.log(stacks)
-        console.log(mirror_index)
-        // if stacks are emty i.e. mirror pattern was at start
-        console.log(stacks.every(s => s.length === 0))
-        if(stacks.every(s => s.length === 0)) break;
     }
-
-    return stacks.every(s => s.length !== lines.length) && mirror_index ? mirror_index : null;
+    return getHorizontalScore(lines)
 }
