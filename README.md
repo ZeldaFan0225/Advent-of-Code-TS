@@ -20,7 +20,8 @@ Days I solved:
 | 11 | ✅ | ✅ |
 | 12 | ✅ | ✅ |
 | 13 | ✅ | ✅ |
-| 14 | pending | pending |
+| 14 | ✅ | ✅ |
+| 15 | pending | pending |
 
 ## Following scripts are available
 
