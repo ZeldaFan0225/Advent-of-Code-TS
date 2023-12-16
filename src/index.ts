@@ -9,12 +9,12 @@ enum InputTypes {
 }
 
 interface DayFile {
-    part_1: (input: string | string[]) => number
-    part_2: (input: string | string[]) => number,
+    part_1: (input: string | string[], visualize?: boolean) => number
+    part_2: (input: string | string[], visualize?: boolean) => number,
     INPUT_SPLIT?: string
 }
 
-function run_day(day: number, year: number, sample_data: InputTypes, log_time: boolean, part?: number) {
+function run_day(day: number, year: number, sample_data: InputTypes, log_time: boolean, part?: number, visualize = false) {
     const script_path = join(__dirname, "./years", year.toString(), `day_${day.toString().padStart(2, "0")}.js`),
         sample_input_path = join(__dirname, "../inputs", year.toString(), `day_${day.toString().padStart(2, "0")}_sample.txt`),
         full_input_path = join(__dirname, "../inputs", year.toString(), `day_${day.toString().padStart(2, "0")}.txt`)
@@ -35,13 +35,13 @@ function run_day(day: number, year: number, sample_data: InputTypes, log_time: b
     if(!input.length)
         throw new Error("Input is empty")
 
-    if(!part || part == 1) executeAndLog(part_1, 1, INPUT_SPLIT ? input.split(INPUT_SPLIT) : input, log_time)
-    if(!part || part == 2) executeAndLog(part_2, 2, INPUT_SPLIT ? input.split(INPUT_SPLIT) : input, log_time)
+    if(!part || part == 1) executeAndLog(part_1, 1, INPUT_SPLIT ? input.split(INPUT_SPLIT) : input, log_time, visualize)
+    if(!part || part == 2) executeAndLog(part_2, 2, INPUT_SPLIT ? input.split(INPUT_SPLIT) : input, log_time, visualize)
 }
 
-function executeAndLog(part_func: (input: string | string[]) => number, part: number, input: string | string[], log_time: boolean) {
+function executeAndLog(part_func: (input: string | string[], visualize?: boolean) => number, part: number, input: string | string[], log_time: boolean, visualize = false) {
     if(log_time) console.time(`Part ${part} Time taken`)
-    const result = part_func(input)
+    const result = part_func(input, visualize)
     if(log_time) console.timeEnd(`Part ${part} Time taken`)
     console.log(`Part ${part} result: ${result}`)
 }
@@ -58,8 +58,9 @@ program
     .addOption(new Option("-p, --part <part>", 'The part to run'))
     .addOption(new Option("-s, --sample-data", 'Whether to use sample data').default(false))
     .addOption(new Option("-t, --log-time", 'Whether to log time').default(true))
-    .action((day, {year, sampleData, logTime, part}) => {
-        run_day(parseInt(day), year, sampleData ? InputTypes.SAMPLE_INPUT_DATA : InputTypes.FULL_INPUT_DATA, logTime, part)
+    .addOption(new Option("-v, --visualize", 'Whether to visualize the result (if available)').default(false))
+    .action((day, {year, sampleData, logTime, part, visualize}) => {
+        run_day(parseInt(day), year, sampleData ? InputTypes.SAMPLE_INPUT_DATA : InputTypes.FULL_INPUT_DATA, logTime, part, visualize)
     })
 
 program

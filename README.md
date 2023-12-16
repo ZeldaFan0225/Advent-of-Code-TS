@@ -21,7 +21,9 @@ Days I solved:
 | 12 | ✅ | ✅ |
 | 13 | ✅ | ✅ |
 | 14 | ✅ | ✅ |
-| 15 | pending | pending |
+| 15 | ✅ | ✅ |
+| 16 | ✅ | ✅ |
+| 17 | pending | pending |
 
 ## Following scripts are available
 
