@@ -23,7 +23,8 @@ Days I solved:
 | 14 | ✅ | ✅ |
 | 15 | ✅ | ✅ |
 | 16 | ✅ | ✅ |
-| 17 | pending | pending |
+| 17 | ✅ [with some hints](https://github.com/ckohen/adventofcode/blob/main/archive/2023/Day17.ts) | ❌ |
+| 18 | pending | pending |
 
 ## Following scripts are available
 
