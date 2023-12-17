@@ -43,7 +43,7 @@ function determineShortestPath(input: number[][], min: number, max: number): num
     const discovered = new Set<string>()
     const scores = new Map<string, number>()
     const destination: Coordinate = {x: input[0]!.length - 1, y: input.length - 1}
-    const queue: ProcessNode[] = [{x: 0, y: 0, heatLoss: 0, direction: Directions.RIGHT, sameMoveCount: 0}]
+    const queue: ProcessNode[] = [{x: 0, y: 0, heatLoss: 0, direction: Directions.RIGHT, sameMoveCount: 1},{x: 0, y: 0, heatLoss: 0, direction: Directions.DOWN, sameMoveCount: 1}]
 
     while(queue.length) {
         const current_node = queue.shift()!
