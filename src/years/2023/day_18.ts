@@ -18,44 +18,89 @@ type NonPerimeterTile = Omit<TileData, "direction" | "colors"> & {perimeter: fal
 export const INPUT_SPLIT = "\n";
 const regex = /([LRDU]) (\d+) \(#([0-9a-f]{6})\)/
 export function part_1(input: string[]): number {
-    const commands = parseCommandsPart1(input)
-    return executeCommands(commands)
+    const commands = parseCommands(input, 1)
+    return processCommands(commands)
 }
 
 
 export function part_2(input: string[]): number {
-    const commands = parseCommandsPart2(input)
-    console.log(commands)
-    return executeCommands(commands)
+    const commands = parseCommands(input, 2)
+    return processCommands(commands)
 }
 
-function parseCommandsPart1(input: string[]) {
+function parseCommands(input: string[], part: 1 | 2) {
     const commands: CommandData[] = []
     for(let command of input) {
         const match = regex.exec(command)?.slice(1)
         if(!match) throw new Error("Invalid Input")
-        const [direction, count] = match as [string, string]
-        commands.push({
-            direction: getDirectionFromString(direction),
-            count: parseInt(count)
-        })
+        const [direction, count, color] = match as [string, string, string]
+        if(part === 1) {
+            commands.push({
+                direction: getDirectionFromString(direction),
+                count: parseInt(count)
+            })
+        } else if(part === 2) {
+            commands.push({
+                direction: getPart2Directions(color),
+                count: Number(`0x${color.slice(0, 5)}`)
+            })
+        }
     }
     return commands
 }
 
-function parseCommandsPart2(input: string[]) {
-    const commands: CommandData[] = []
-    for(let command of input) {
-        const match = regex.exec(command)
-        if(!match) throw new Error("Invalid Input")
-        const color = match[3]!
-        commands.push({
-            direction: getPart2Directions(color),
-            count: Number(`0x${color.slice(0, 5)}`)
-        })
+
+function getPart2Directions(color: string) {
+    switch(color.slice(-1)) {
+        case "0": return Directions.RIGHT;
+        case "1": return Directions.DOWN;
+        case "2": return Directions.LEFT;
+        case "3": return Directions.UP;
+        default: throw new Error("Invalid Input")
     }
-    return commands
 }
+
+
+
+// shoelace formula https://en.wikipedia.org/wiki/Shoelace_formula
+function processCommands(commands: CommandData[]): number {
+    let area = 0
+    let borders = 0
+    let previous_position = {x: 0, y: 0}
+    for(let command of commands) {
+        borders += command.count
+        const new_position = getNewCoordinates(previous_position, command.direction, command.count)
+        area += previous_position.x * new_position.y
+        area -= previous_position.y * new_position.x
+        previous_position = new_position
+    }
+
+    area = Math.abs(area) / 2
+    return area + 0.5 * borders + 1
+}
+
+
+function getNewCoordinates(previous: {x: number, y: number}, direction: Directions, count = 1) {
+    switch(direction) {
+        case Directions.UP: return {...previous, y: previous.y - count};
+        case Directions.DOWN: return {...previous, y: previous.y + count};
+        case Directions.LEFT: return {...previous, x: previous.x - count};
+        case Directions.RIGHT: return {...previous, x: previous.x + count};
+    }
+}
+
+function getDirectionFromString(str: string) {
+    switch(str) {
+        case "U": return Directions.UP;
+        case "D": return Directions.DOWN;
+        case "L": return Directions.LEFT;
+        case "R": return Directions.RIGHT;
+        default: throw new Error("Invalid Input")
+    }
+}
+
+/*
+HALL OF SHAME OR LEARNING
 
 function executeCommands(commands: CommandData[]) {
     let max = {x:0,y:0}
@@ -137,35 +182,6 @@ function executeCommands(commands: CommandData[]) {
 
 
 // Util functions
-function getDirectionFromString(str: string) {
-    switch(str) {
-        case "U": return Directions.UP;
-        case "D": return Directions.DOWN;
-        case "L": return Directions.LEFT;
-        case "R": return Directions.RIGHT;
-        default: throw new Error("Invalid Input")
-    }
-}
-
-function getNewCoordinates(previous: {x: number, y: number}, direction: Directions) {
-    switch(direction) {
-        case Directions.UP: return {...previous, y: previous.y - 1};
-        case Directions.DOWN: return {...previous, y: previous.y + 1};
-        case Directions.LEFT: return {...previous, x: previous.x - 1};
-        case Directions.RIGHT: return {...previous, x: previous.x + 1};
-    }
-}
-
 function getBorderDirection(direction: Directions): Directions {
     return (direction + 3) % 4;
-}
-
-function getPart2Directions(color: string) {
-    switch(color.slice(-1)) {
-        case "0": return Directions.RIGHT;
-        case "1": return Directions.DOWN;
-        case "2": return Directions.LEFT;
-        case "3": return Directions.UP;
-        default: throw new Error("Invalid Input")
-    }
-}
+}*/
