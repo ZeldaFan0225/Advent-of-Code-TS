@@ -6,14 +6,6 @@ interface CommandData {
     count: number
 }
 
-interface TileData {
-    borders: Directions[]
-    x: number,
-    y: number,
-    direction: Directions
-}
-
-type NonPerimeterTile = Omit<TileData, "direction" | "colors"> & {perimeter: false}
 
 export const INPUT_SPLIT = "\n";
 const regex = /([LRDU]) (\d+) \(#([0-9a-f]{6})\)/
@@ -101,6 +93,16 @@ function getDirectionFromString(str: string) {
 
 /*
 HALL OF SHAME OR LEARNING
+
+
+interface TileData {
+    borders: Directions[]
+    x: number,
+    y: number,
+    direction: Directions
+}
+
+type NonPerimeterTile = Omit<TileData, "direction" | "colors"> & {perimeter: false}
 
 function executeCommands(commands: CommandData[]) {
     let max = {x:0,y:0}
