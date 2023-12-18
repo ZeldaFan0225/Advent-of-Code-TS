@@ -3,17 +3,14 @@ enum Directions {
 }
 interface CommandData {
     direction: Directions,
-    count: number,
-    color: number
+    count: number
 }
 
 interface TileData {
-    colors: Partial<Record<Directions, number>>
+    borders: Directions[]
     x: number,
     y: number,
-    direction: Directions,
-    perimeter: true,
-    start?: boolean
+    direction: Directions
 }
 
 type NonPerimeterTile = Omit<TileData, "direction" | "colors"> & {perimeter: false}
@@ -37,11 +34,10 @@ function parseCommandsPart1(input: string[]) {
     for(let command of input) {
         const match = regex.exec(command)?.slice(1)
         if(!match) throw new Error("Invalid Input")
-        const [direction, count, color] = match as [string, string, string]
+        const [direction, count] = match as [string, string]
         commands.push({
             direction: getDirectionFromString(direction),
-            count: parseInt(count),
-            color: Number(`0x${color}`)
+            count: parseInt(count)
         })
     }
     return commands
@@ -55,8 +51,7 @@ function parseCommandsPart2(input: string[]) {
         const color = match[3]!
         commands.push({
             direction: getPart2Directions(color),
-            count: Number(`0x${color.slice(0, 5)}`),
-            color: Number(`0x${color}`)
+            count: Number(`0x${color.slice(0, 5)}`)
         })
     }
     return commands
@@ -65,25 +60,25 @@ function parseCommandsPart2(input: string[]) {
 function executeCommands(commands: CommandData[]) {
     let max = {x:0,y:0}
     let min = {x:0,y:0}
-    const perimenter_tiles: TileData[] = []
+    const perimeter_tiles: TileData[] = []
     let previous_coords = {x: 0, y: 0}
-    let previous_direction: Directions | -1 = -1
     let command_i = 0
     for(let command of commands) {
         for(let i = 0; i < command.count; i++) {
             let colors: Partial<Record<Directions, number>> = {}
+            let borders: Directions[] = []
 
-            colors[getColorDirection(command.direction)] = command.color
+            borders.push(getBorderDirection(command.direction))
 
             // for last tile in row; check upcoming color and direction
             const upcoming = commands[command_i + 1]
             if(i === command.count - 1 && upcoming) {
                 // if right turn
                 if((command.direction + 1) % 4 === upcoming.direction) {
-                    colors[getColorDirection(upcoming.direction)] = upcoming.color
+                    borders.push(getBorderDirection(upcoming.direction))
                 // if left turn; discard any colors because the tile is not at the perimeter
                 } else if((command.direction + 3) % 4 === upcoming.direction) {
-                    colors = {}
+                    borders = []
                 }
             }
 
@@ -92,32 +87,29 @@ function executeCommands(commands: CommandData[]) {
             if(previous_coords.x > max.x) max.x = previous_coords.x
             if(previous_coords.y < min.y) min.y = previous_coords.y
             if(previous_coords.y > max.y) max.y = previous_coords.y
-            previous_direction = command.direction
-            perimenter_tiles.push({
+            perimeter_tiles.push({
                 ...previous_coords,
                 direction: command.direction,
-                colors,
-                perimeter: true
+                borders
             })
         }
         command_i++
     }
-    const last_tile = perimenter_tiles.at(-1)!
-    last_tile.start = true
-    last_tile.colors[getColorDirection(perimenter_tiles[0]!.direction)] = commands[0]!.color
+    const last_tile = perimeter_tiles.at(-1)!
+    last_tile.borders.push(getBorderDirection(perimeter_tiles[0]!.direction))
 
     // shift coordinates around to make x >= 0 and y >= 0
     if(min.x < 0) {
-        perimenter_tiles.forEach(t => t.x -= min.x)
+        perimeter_tiles.forEach(t => t.x -= min.x)
     }
     if(min.y < 0) {
-        perimenter_tiles.forEach(t => t.y -= min.y)
+        perimeter_tiles.forEach(t => t.y -= min.y)
     }
     const width = max.x - min.x + 1
     const height = max.y - min.y + 1
 
     const tiles: Record<number, Record<number, (NonPerimeterTile | TileData)>> = {}
-    for(let tile of perimenter_tiles) {
+    for(let tile of perimeter_tiles) {
         if(!tiles[tile.y]) tiles[tile.y] = {}
         tiles[tile.y]![tile.x] = tile
     }
@@ -128,8 +120,8 @@ function executeCommands(commands: CommandData[]) {
         for(let j = 0; j < width; j++) {
             const tile = tiles[i]?.[j]
             if(tile) {
-                if(tile.colors[Directions.LEFT]) isinside = true;
-                if(tile.colors[Directions.RIGHT]) isinside = false;
+                if(tile.borders.includes(Directions.LEFT)) isinside = true;
+                if(tile.borders.includes(Directions.RIGHT)) isinside = false;
                 count++;
                 continue;
             }
@@ -164,7 +156,7 @@ function getNewCoordinates(previous: {x: number, y: number}, direction: Directio
     }
 }
 
-function getColorDirection(direction: Directions): Directions {
+function getBorderDirection(direction: Directions): Directions {
     return (direction + 3) % 4;
 }
 
