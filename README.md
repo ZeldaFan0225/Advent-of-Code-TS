@@ -24,7 +24,7 @@ Days I solved:
 | 15 | ✅ | ✅ |
 | 16 | ✅ | ✅ |
 | 17 | ✅ [with some hints](https://github.com/ckohen/adventofcode/blob/main/archive/2023/Day17.ts) | ✅ |
-| 18 | ✅ | pending |
+| 18 | ✅ | ✅ with [some help](https://github.com/ckohen/adventofcode/blob/main/archive/2023/Day18.ts) and [Wikipedia](https://en.wikipedia.org/wiki/Shoelace_formula) |
 | 19 | pending | pending |
 
 ## Following scripts are available
