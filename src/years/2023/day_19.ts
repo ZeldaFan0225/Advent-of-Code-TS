@@ -32,33 +32,21 @@ export function part_2(input: [string, string]): number {
     const [wfstring] = input
     const workflows = parseWorkflows(wfstring)
     const result = findAllPossibleCombinations("in", {
-        x: {min: 0, max: 4000},
-        m: {min: 0, max: 4000},
-        a: {min: 0, max: 4000},
-        s: {min: 0, max: 4000},
+        x: {min: 1, max: 4000},
+        m: {min: 1, max: 4000},
+        a: {min: 1, max: 4000},
+        s: {min: 1, max: 4000},
     })
-
-    console.log(result)
 
     return result;
 
     function findAllPossibleCombinations(workflow: string, borders: Borders): number {
         const single_results = []
         if(workflow === "R") return 0;
-        if(workflow === "A") {
-            console.log(getCombinationsFromBorder(borders))
-            console.log(borders)
-        }
         if(workflow === "A") return getCombinationsFromBorder(borders);
         const rules = workflows.get(workflow)
-        if(!rules) {
-            console.log("No Rule Found");
-            return 0;
-        }
-        console.log(borders)
-        console.log(workflow)
+        if(!rules) return 0;
         for(let rule of rules) {
-            console.log(rule)
             if(!rule.num || !rule.property) {
                 single_results.push(findAllPossibleCombinations(rule.then, borders))
                 break;
@@ -81,7 +69,8 @@ export function part_2(input: [string, string]): number {
     }
 
     function getCombinationsFromBorder(borders: Borders) {
-        return Object.values(borders).map(v => v.max - v.min).reduce((a, b) => a * b)
+        // add + 1 because count of numbers is diff + 1
+        return Object.values(borders).map(v => v.max - v.min + 1).reduce((a, b) => a * b)
     }
 }
 
