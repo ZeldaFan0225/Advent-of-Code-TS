@@ -9,7 +9,7 @@ interface Rule {
     then: string,
     greater_than?: boolean,
     num?: number,
-    property?: string
+    property?: "x" | "m" | "a" | "s"
 }
 
 interface Workflow {
@@ -17,20 +17,73 @@ interface Workflow {
     apply_rules: (part: Part) => string
 }
 
+type Borders = Record<"x" | "m" | "a" | "s", {min: number, max: number}>
+
 export const INPUT_SPLIT = "\n\n";
 export function part_1(input: [string, string]): number {
     const [workflows, parts] = input
     const wf = parseWorkflows(workflows)
     const p = parseParts(parts)
-    const result = getAcceptedPartsCount(p, wf)
-    return result
+    return getAcceptedPartsCount(p, wf)
 }
 
 
 export function part_2(input: [string, string]): number {
-    return input.length
-}
+    const [wfstring] = input
+    const workflows = parseWorkflows(wfstring)
+    const result = findAllPossibleCombinations("in", {
+        x: {min: 0, max: 4000},
+        m: {min: 0, max: 4000},
+        a: {min: 0, max: 4000},
+        s: {min: 0, max: 4000},
+    })
 
+    console.log(result)
+
+    return result;
+
+    function findAllPossibleCombinations(workflow: string, borders: Borders): number {
+        const single_results = []
+        if(workflow === "R") return 0;
+        if(workflow === "A") {
+            console.log(getCombinationsFromBorder(borders))
+            console.log(borders)
+        }
+        if(workflow === "A") return getCombinationsFromBorder(borders);
+        const rules = workflows.get(workflow)
+        if(!rules) {
+            console.log("No Rule Found");
+            return 0;
+        }
+        console.log(borders)
+        console.log(workflow)
+        for(let rule of rules) {
+            console.log(rule)
+            if(!rule.num || !rule.property) {
+                single_results.push(findAllPossibleCombinations(rule.then, borders))
+                break;
+            }
+
+            const rule_border: Borders = {
+                x: {min: borders.x.min, max: borders.x.max},
+                m: {min: borders.m.min, max: borders.m.max},
+                a: {min: borders.a.min, max: borders.a.max},
+                s: {min: borders.s.min, max: borders.s.max},
+            }
+            // play around with these parameters to see
+            rule_border[rule.property] = rule.greater_than ? {min: rule.num + 1, max: rule_border[rule.property].max} : {min: rule_border[rule.property].min, max: rule.num - 1}
+            single_results.push(findAllPossibleCombinations(rule.then, rule_border))
+
+            borders[rule.property] = rule.greater_than ? {min: borders[rule.property].min, max: rule.num} : {min: rule.num, max: borders[rule.property].max}
+        }
+
+        return single_results.reduce((a, b) => a + b)
+    }
+
+    function getCombinationsFromBorder(borders: Borders) {
+        return Object.values(borders).map(v => v.max - v.min).reduce((a, b) => a * b)
+    }
+}
 
 function getAcceptedPartsCount(parts: Part[], workflows: Map<string, Rule[]>): number {
     const accepted: Part[] = []
@@ -83,7 +136,7 @@ function parseWorkflows(workflows: string) {
                 then: then!,
                 greater_than: r.includes(">"),
                 num: parseInt(num as string),
-                property: property as string
+                property: property as "x" | "m" | "a" | "s"
             }
         })
 
