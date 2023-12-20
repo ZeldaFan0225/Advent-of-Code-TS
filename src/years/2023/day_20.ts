@@ -13,18 +13,12 @@ interface FlipFlopNode extends Omit<BroadcasterNode, "type"> {
     state: boolean
 }
 
-interface ConjunktionNode extends Omit<BroadcasterNode, "type"> {
+interface ConjunctionNode extends Omit<BroadcasterNode, "type"> {
     type: NodeTypes.CONJUNCTION
     parent_pulses: Record<string, boolean>
 }
 
-type Node = BroadcasterNode | FlipFlopNode | ConjunktionNode
-
-interface QueuedNode {
-    pulse_type: boolean,
-    coming_from: string,
-    name: string
-}
+type Node = BroadcasterNode | FlipFlopNode | ConjunctionNode
 
 export const INPUT_SPLIT = "\n";
 export function part_1(input: string[]): number {
@@ -40,12 +34,8 @@ export function part_2(input: string[]): number {
         if(n.triggers.includes("rx")) rxparent = nodes.get(n.name)!
     })
     if(!rxparent || rxparent?.type !== NodeTypes.CONJUNCTION) throw new Error("No way to find out cycles")
-    const trigger_parents = Object.keys(rxparent.parent_pulses)
-    const cycles = trigger_parents.map(t => countCycles(nodes, false, t))
-    console.log(cycles)
-    console.log(cycles.reduce(lcm))
-    return 0
-    //return countCycles(nodes, false, "dh")
+    const cycles = countCycles(nodes, false, rxparent.name)
+    return [...cycles.values()].reduce(lcm)
 }
 
 
@@ -137,28 +127,20 @@ function simulateCycles(nodes: Map<string, Node>, initial_pulse: boolean, cycles
 
 
 function countCycles(nodes: Map<string, Node>, initial_pulse: boolean, high_node: string) {
-    let low_count = 0
-    let high_count = 0
     let count = 0
     let found = false
 
+    const cycles = new Map<string, number>()
+
     while(!found) {
         const queue = [{name: "broadcaster", pulse_type: initial_pulse, coming_from: "button"}]
+        count++
         while(queue.length) {
             const elements = queue.splice(0)
             for(let temp of elements) {
                 const {name, pulse_type, coming_from} = temp
                 const node = nodes.get(name)
 
-                if(name === high_node && !pulse_type) console.log(high_node, !pulse_type)
-                if(name === high_node && !pulse_type) found = true
-
-                //console.log(`${coming_from} - ${pulse_type ? "high" : "low"} -> ${name}`)
-
-                if(pulse_type) high_count++
-                else low_count++
-
-                //console.log(`- ${pulse_type ? "high" : "low"} -> ${name}`)
                 switch(node?.type) {
                     case NodeTypes.BROADCAST: {
                         queue.push(...node.triggers.map(name => ({name, pulse_type, coming_from: node.name})))
@@ -167,6 +149,10 @@ function countCycles(nodes: Map<string, Node>, initial_pulse: boolean, high_node
                     case NodeTypes.CONJUNCTION: {
                         node.parent_pulses[coming_from] = pulse_type
                         const output = !Object.values(node.parent_pulses).every(n => n)
+                        if(high_node === name) {
+                            if(pulse_type && !cycles.has(coming_from)) cycles.set(coming_from, count)
+                            if(Object.keys(node.parent_pulses).every(k => cycles.has(k))) found = true
+                        }
                         queue.push(...node.triggers.map(name => ({name, pulse_type: output, coming_from: node.name})))
                         break;
                     }
@@ -179,7 +165,7 @@ function countCycles(nodes: Map<string, Node>, initial_pulse: boolean, high_node
                 }
             }
         }
-        count++
     }
-    return count
+
+    return cycles
 }
