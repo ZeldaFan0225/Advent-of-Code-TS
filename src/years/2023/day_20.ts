@@ -22,21 +22,20 @@ type Node = BroadcasterNode | FlipFlopNode | ConjunktionNode
 
 interface QueuedNode {
     pulse_type: boolean,
+    coming_from: string,
     name: string
 }
 
 export const INPUT_SPLIT = "\n";
 export function part_1(input: string[]): number {
     const nodes = parseNodes(input)
-    console.log(nodes)
-    const cycles = simulateCycles(nodes, false, 1)
-    //console.log(nodes)
-    return input.length
+    return simulateCycles(nodes, false, 1000)
 }
 
 
-export function part_2(input: string): number {
-    return input.length
+export function part_2(input: string[]): number {
+    const nodes = parseNodes(input)
+    return simulateCycles(nodes, false, 100000, "rx")
 }
 
 function parseNodes(input: string[]) {
@@ -70,52 +69,51 @@ function parseNodes(input: string[]) {
             if(c.type === NodeTypes.CONJUNCTION) {
                 c.parent_pulses[name] = false
             }
-            nodes.set(child, c)
         }
     }
 
     return nodes
 }
 
-function simulateCycles(nodes: Map<string, Node>, initial_pulse: boolean, cycles = 1000) {
+function simulateCycles(nodes: Map<string, Node>, initial_pulse: boolean, cycles = 1000, until_reached?: string) {
     let low_count = 0
     let high_count = 0
+    let count = 0
 
-    for(let i = 0; i < cycles; i++) {
-        const queue = [{name: "broadcaster", pulse_type: initial_pulse}]
+    outermost:
+    for(count = 0; count < cycles; count++) {
+        const queue = [{name: "broadcaster", pulse_type: initial_pulse, coming_from: "button"}]
         while(queue.length) {
-            //console.log(queue)
             const elements = queue.splice(0)
             for(let temp of elements) {
-                if(!temp) continue;
-                const {name, pulse_type} = temp
+                const {name, pulse_type, coming_from} = temp
+                const node = nodes.get(name)
+                if(until_reached && name === until_reached && !pulse_type) break outermost;
+
                 if(pulse_type) high_count++
                 else low_count++
-                const node = nodes.get(name)
-                console.log(`- ${pulse_type ? "high" : "low"} -> ${name}`)
+
+                //console.log(`- ${pulse_type ? "high" : "low"} -> ${name}`)
                 switch(node?.type) {
                     case NodeTypes.BROADCAST: {
-                        queue.unshift(...node.triggers.map(name => ({name, pulse_type})))
+                        queue.push(...node.triggers.map(name => ({name, pulse_type, coming_from: node.name})))
                         break;
                     }
                     case NodeTypes.CONJUNCTION: {
-                        node.parent_pulses[name] = pulse_type
-                        const output = Object.values(node.parent_pulses).every(n => n)
-                        queue.unshift(...node.triggers.map(name => ({name, pulse_type: output})))
-                        nodes.set(name, node)
+                        node.parent_pulses[coming_from] = pulse_type
+                        const output = !Object.values(node.parent_pulses).every(n => n)
+                        queue.push(...node.triggers.map(name => ({name, pulse_type: output, coming_from: node.name})))
                         break;
                     }
                     case NodeTypes.FLIP_FLOP: {
                         if(pulse_type) break;
                         node.state = !node.state
-                        const output = node.state
-                        queue.unshift(...node.triggers.map(name => ({name, pulse_type: output})))
-                        nodes.set(name, node)
+                        queue.push(...node.triggers.map(name => ({name, pulse_type: node.state, coming_from: node.name})))
                         break;
                     }
                 }
             }
         }
-        console.log(high_count, low_count)
     }
+    return until_reached ? count : high_count * low_count
 }
