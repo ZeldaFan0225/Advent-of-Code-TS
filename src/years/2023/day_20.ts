@@ -35,7 +35,27 @@ export function part_1(input: string[]): number {
 
 export function part_2(input: string[]): number {
     const nodes = parseNodes(input)
-    return countCycles(nodes, false)
+    let rxparent: Node | undefined
+    nodes.forEach(n => {
+        if(n.triggers.includes("rx")) rxparent = nodes.get(n.name)!
+    })
+    if(!rxparent || rxparent?.type !== NodeTypes.CONJUNCTION) throw new Error("No way to find out cycles")
+    const trigger_parents = Object.keys(rxparent.parent_pulses)
+    const cycles = trigger_parents.map(t => countCycles(nodes, false, t))
+    console.log(cycles)
+    console.log(cycles.reduce(lcm))
+    return 0
+    //return countCycles(nodes, false, "dh")
+}
+
+
+function gcd (a: number, b: number) {
+    if(b === 0) return a;
+    return gcd(b, a%b);
+}
+
+function lcm (a: number, b: number) {
+    return Math.abs(a * b) / gcd(a, b)
 }
 
 function parseNodes(input: string[]) {
@@ -116,7 +136,7 @@ function simulateCycles(nodes: Map<string, Node>, initial_pulse: boolean, cycles
 }
 
 
-function countCycles(nodes: Map<string, Node>, initial_pulse: boolean) {
+function countCycles(nodes: Map<string, Node>, initial_pulse: boolean, high_node: string) {
     let low_count = 0
     let high_count = 0
     let count = 0
@@ -130,10 +150,10 @@ function countCycles(nodes: Map<string, Node>, initial_pulse: boolean) {
                 const {name, pulse_type, coming_from} = temp
                 const node = nodes.get(name)
 
-                if(name === "rx" && !pulse_type) console.log("rx", !pulse_type)
-                if(name === "rx" && !pulse_type) found = true
+                if(name === high_node && !pulse_type) console.log(high_node, !pulse_type)
+                if(name === high_node && !pulse_type) found = true
 
-                console.log(`${coming_from} - ${pulse_type ? "high" : "low"} -> ${name}`)
+                //console.log(`${coming_from} - ${pulse_type ? "high" : "low"} -> ${name}`)
 
                 if(pulse_type) high_count++
                 else low_count++
