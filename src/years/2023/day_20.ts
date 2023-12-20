@@ -85,35 +85,37 @@ function simulateCycles(nodes: Map<string, Node>, initial_pulse: boolean, cycles
         const queue = [{name: "broadcaster", pulse_type: initial_pulse}]
         while(queue.length) {
             //console.log(queue)
-            const temp = queue.shift()
-            if(!temp) continue;
-            const {name, pulse_type} = temp
-            if(pulse_type) high_count++
-            else low_count++
-            const node = nodes.get(name)
-            console.log(`- ${pulse_type ? "high" : "low"} -> ${name}`)
-            switch(node?.type) {
-                case NodeTypes.BROADCAST: {
-                    queue.unshift(...node.triggers.map(name => ({name, pulse_type})))
-                    break;
-                }
-                case NodeTypes.CONJUNCTION: {
-                    node.parent_pulses[name] = pulse_type
-                    const output = Object.values(node.parent_pulses).every(n => n)
-                    queue.unshift(...node.triggers.map(name => ({name, pulse_type: output})))
-                    nodes.set(name, node)
-                    break;
-                }
-                case NodeTypes.FLIP_FLOP: {
-                    if(pulse_type) break;
-                    node.state = !node.state
-                    const output = node.state
-                    queue.unshift(...node.triggers.map(name => ({name, pulse_type: output})))
-                    nodes.set(name, node)
-                    break;
+            const elements = queue.splice(0)
+            for(let temp of elements) {
+                if(!temp) continue;
+                const {name, pulse_type} = temp
+                if(pulse_type) high_count++
+                else low_count++
+                const node = nodes.get(name)
+                console.log(`- ${pulse_type ? "high" : "low"} -> ${name}`)
+                switch(node?.type) {
+                    case NodeTypes.BROADCAST: {
+                        queue.unshift(...node.triggers.map(name => ({name, pulse_type})))
+                        break;
+                    }
+                    case NodeTypes.CONJUNCTION: {
+                        node.parent_pulses[name] = pulse_type
+                        const output = Object.values(node.parent_pulses).every(n => n)
+                        queue.unshift(...node.triggers.map(name => ({name, pulse_type: output})))
+                        nodes.set(name, node)
+                        break;
+                    }
+                    case NodeTypes.FLIP_FLOP: {
+                        if(pulse_type) break;
+                        node.state = !node.state
+                        const output = node.state
+                        queue.unshift(...node.triggers.map(name => ({name, pulse_type: output})))
+                        nodes.set(name, node)
+                        break;
+                    }
                 }
             }
         }
-        //console.log(high_count, low_count)
+        console.log(high_count, low_count)
     }
 }
