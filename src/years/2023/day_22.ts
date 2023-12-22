@@ -14,16 +14,46 @@ interface Brick {
 
 export const INPUT_SPLIT = "\n";
 export function part_1(input: string[]): number {
+    console.time("coordinates")
     const coordinates = parseCoordinates(input)
+    console.timeEnd("coordinates")
     const fallen = letThemFall(coordinates)
     const disintegratable = determineDisintegratableBlocks(fallen)
-    console.log(fallen)
     return disintegratable
 }
 
 
-export function part_2(input: string): number {
-return input.length
+export function part_2(input: string[]): number {
+    const coordinates = parseCoordinates(input)
+    const fallen = letThemFall(coordinates)
+    const mostfalling = determineMostFalling(fallen)
+    return mostfalling
+}
+
+function determineMostFalling(bricks: Brick[]) {
+    let total = 0
+    for(let brick of bricks) {
+        total += getBricksFalling(bricks, brick)
+    }
+    return total
+}
+
+function getBricksFalling(bricks: Brick[], brick: Brick) {
+    const queue = brick.supporting.filter(s => bricks[s]!.supported_by.length === 1)
+    let counter = 0
+    const fallen = new Set<number>()
+    while(queue.length) {
+        const i = queue.shift()!
+        const b = bricks[i]
+        if(!b) throw new Error("Invalid bricks")
+        fallen.add(i)
+        const new_bricks = b.supporting.filter(s => bricks[s]!.supported_by.filter(n => !fallen.has(n)).length === 0)
+        for(let nb of new_bricks) {
+            if(!queue.includes(nb)) queue.push(nb)
+        }
+        counter++
+    }
+    return counter
 }
 
 function determineDisintegratableBlocks(bricks: Brick[]) {
@@ -39,8 +69,6 @@ function determineDisintegratableBlocks(bricks: Brick[]) {
             canbedestroyed.add(bricks.indexOf(brick))
         }
     }
-    console.log(cannotbedestroyed)
-    console.log(canbedestroyed)
     for(let b of canbedestroyed.values()) {
         if(!cannotbedestroyed.has(b)) counter += 1
     }
