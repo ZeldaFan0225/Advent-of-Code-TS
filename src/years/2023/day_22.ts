@@ -32,8 +32,8 @@ function determineDisintegratableBlocks(bricks: Brick[]) {
     const cannotbedestroyed = new Set<number>()
     for(let brick of bricks) {
         if(brick.supporting.length) {
-            const doesntfullysupport = brick.supporting.filter(s => bricks[s]!.supported_by.length >= 2)
-            if(doesntfullysupport.length) canbedestroyed.add(bricks.indexOf(brick))
+            const doesntfullysupport = brick.supporting.every(s => bricks[s]!.supported_by.length >= 2)
+            if(doesntfullysupport) canbedestroyed.add(bricks.indexOf(brick))
             else cannotbedestroyed.add(bricks.indexOf(brick))
         } else {
             canbedestroyed.add(bricks.indexOf(brick))
