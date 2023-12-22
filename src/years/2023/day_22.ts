@@ -12,11 +12,10 @@ interface Brick {
     supporting: number[]
 }
 
+const COORDINATE_REGEX = /(?<x1>\d+),(?<y1>\d+),(?<z1>\d+)~(?<x2>\d+),(?<y2>\d+),(?<z2>\d+)/
 export const INPUT_SPLIT = "\n";
 export function part_1(input: string[]): number {
-    console.time("coordinates")
     const coordinates = parseCoordinates(input)
-    console.timeEnd("coordinates")
     const fallen = letThemFall(coordinates)
     const disintegratable = determineDisintegratableBlocks(fallen)
     return disintegratable
@@ -78,13 +77,11 @@ function determineDisintegratableBlocks(bricks: Brick[]) {
 function parseCoordinates(input: string[]) {
     const bricks: Brick[] = []
     for(let line of input) {
-        const [coord_1, coord_2] = line.split("~") as [string, string]
-        const [x1,y1,z1] = coord_1.split(",").map(c => parseInt(c)) as [number, number, number]
-        const [x2,y2,z2] = coord_2.split(",").map(c => parseInt(c)) as [number, number, number]
+        const {x1, y1, z1, x2, y2, z2} = COORDINATE_REGEX.exec(line)!.groups as any
 
         bricks.push({
-            start: {x: x1, y: y1, z: z1},
-            end: {x: x2, y: y2, z: z2},
+            start: {x: parseInt(x1), y: parseInt(y1), z: parseInt(z1)},
+            end: {x: parseInt(x2), y: parseInt(y2), z: parseInt(z2)},
             supported_by: [],
             supporting: []
         })
@@ -92,6 +89,8 @@ function parseCoordinates(input: string[]) {
     return bricks
 }
 
+
+// TODO: optimize when bored
 function letThemFall(bricks: Brick[]) {
     let fallen = true
     let register_supporting = false
