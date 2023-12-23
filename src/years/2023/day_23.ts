@@ -60,6 +60,7 @@ function findLongestPath(map: Tile[][], start: Coordinate, end: Coordinate) {
 
         const new_path = current.path + `${current.x},${current.y} `
 
+        // filter out any tiles that went through the current tile already as they are guaranteed to have a shorter path; they can be revisited using the longest path through this tile
         queue = queue.filter(q => !q.path.includes(` ${current.x},${current.y} `))
 
         if(current.x === end.x && current.y === end.y) {
