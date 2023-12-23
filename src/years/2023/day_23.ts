@@ -24,6 +24,7 @@ export function part_1(input: string[]): number {
 
 export function part_2(input: string[]): number {
     const {map, start, end} = parseMap(input, 2)
+    // 4887 is too low
     return findLongestPath(map, start, end)
 }
 
@@ -49,79 +50,36 @@ function parseMap(input: string[], part: 1 | 2) {
     return {map, start, end}
 }
 
-
-function findLongestPath(map: Tile[][], start: Coordinate, end: Coordinate): number {
-    const queue: QueueCoordinate[] = [{...start, path: " "}]
+function findLongestPath(map: Tile[][], start: Coordinate, end: Coordinate) {
+    let queue: QueueCoordinate[] = [{...start, path: " "}]
     const distances = new Map<string, number>
     while(queue.length) {
         const current = queue.shift()!
         const currentTile = map[current.y]![current.x]!
         if(!currentTile) continue;
-        const newpath = current.path + `${current.x},${current.y} `
-        if(distances.has(newpath)) {
-            // check if there is a path to this tile
-        }
+
+        const new_path = current.path + `${current.x},${current.y} `
+
+        queue = queue.filter(q => !q.path.includes(` ${current.x},${current.y} `))
+
         if(current.x === end.x && current.y === end.y) {
             // minus 1 because we don't count the start tile
-            distances.set(newpath, newpath.trim().split(" ").length - 1)
+            distances.set(new_path, new_path.trim().split(" ").length - 1)
             continue;
         }
-        for(let neighbor of getNeighbors(map, current, newpath)) {
-            queue.push({x: neighbor.x, y: neighbor.y, path: newpath})
+
+        for(let neighbor of getNeighbors(map, current, new_path)) {
+            queue.push({x: neighbor.x, y: neighbor.y, path: new_path})
         }
+        //console.log(queue)
     }
 
+    /*for(let path of distances.keys()) {
+        printPath(map, path)
+    }*/
+
+    console.log(distances.values())
     return Math.max(...distances.values())
-}
-
-function findBetterLongestPath(map: Tile[][], start: Coordinate, end: Coordinate) {
-    const queue: QueueCoordinate[] = [{...start, path: " "}]
-    const paths = new Set<string>
-    while(queue.length) {
-        const current = queue.shift()!
-        const currentTile = map[current.y]![current.x]!
-        if(!currentTile) continue;
-        const newpath = current.path + `${current.x},${current.y} `
-        if(paths.has(newpath)) {
-            // check if there is a path to this tile
-        }
-        if(current.x === end.x && current.y === end.y) {
-            // minus 1 because we don't count the start tile
-            paths.add(newpath)
-            continue;
-        }
-        for(let neighbor of getNeighbors(map, current, newpath)) {
-            queue.push({x: neighbor.x, y: neighbor.y, path: newpath})
-        }
-    }
-
-    return 0//Math.max(...distances.values())
-}
-
-function getBetterNeighbors(map: Tile[][], coordinate: Coordinate, discovered: Map<string, DiscoveredCoordinate>): Tile[] {
-    const {x, y} = coordinate
-    const result: Tile[] = []
-    if(
-        map[y]?.[x - 1] &&
-        [".", "<"].includes(map[y]?.[x - 1]?.c ?? "") &&
-        !discovered.has(`${x - 1},${y}`)
-    ) result.push(map[y]![x - 1]!)
-    if(
-        map[y]?.[x + 1] &&
-        [".", ">"].includes(map[y]?.[x + 1]?.c ?? "") &&
-        !discovered.has(`${x + 1},${y}`)
-    ) result.push(map[y]![x + 1]!)
-    if(
-        map[y - 1]?.[x] &&
-        [".", "^"].includes(map[y - 1]?.[x]?.c ?? "") &&
-        !discovered.has(`${x},${y - 1}`)
-    ) result.push(map[y - 1]![x]!)
-    if(
-        map[y + 1]?.[x] &&
-        [".", "v"].includes(map[y + 1]?.[x]?.c ?? "") &&
-        !discovered.has(`${x},${y + 1}`)
-    ) result.push(map[y + 1]![x]!)
-    return result
 }
 
 function getNeighbors(map: Tile[][], coordinate: Coordinate, path: string): Tile[] {
@@ -148,4 +106,16 @@ function getNeighbors(map: Tile[][], coordinate: Coordinate, path: string): Tile
         !path.includes(` ${x},${y + 1} `)
     ) result.push(map[y + 1]![x]!)
     return result
+}
+
+function printPath(map: Tile[][], path: string) {
+    for(let y = 0; y < map.length; y++) {
+        let line = ""
+        for(let x = 0; x < map[y]!.length; x++) {
+            if(path.includes(` ${x},${y} `)) line += "O"
+            else line += "."//map[y]![x]!.c
+        }
+        console.log(line)
+    }
+    console.log("\n\n")
 }
