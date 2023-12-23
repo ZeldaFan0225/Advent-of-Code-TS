@@ -36,7 +36,7 @@ export function part_1(input: string[]): number {
 
 export function part_2(input: string[]): number {
     const {map, start, end} = parseMap(input, 2)
-    const {nodes, distanceMap} = getNodeRepresentation(map, start, end)
+    const {nodes, distanceMap} = getNodeRepresentation(map, start)
     return getPathLengthsFromNodes(nodes, 0, new Set(), distanceMap)
 }
 
