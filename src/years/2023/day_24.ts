@@ -4,6 +4,8 @@ Interfaces and Types
 =========================
  */
 
+import {init} from "z3-solver";
+
 type Dimension = "x" | "y" | "z"
 type Vector = Record<Dimension, number>
 
@@ -20,8 +22,9 @@ export function part_1(input: string[]): number {
 }
 
 
-export function part_2(input: string): number {
-return input.length
+export async function part_2(input: string[]): Promise<number> {
+    const lines = parseLines(input)
+    return await doSomeStupidCalculations(lines)
 }
 
 
@@ -98,3 +101,39 @@ function getPoint(line: Line, time: number): Vector {
 Part 2 specific functions
 =========================
  */
+
+async function doSomeStupidCalculations(lines: Line[]) {
+    const {Context} = await init()
+    const {Solver, Real, And, Eq, Sum, Product} = Context("default")
+
+
+    const prx = Real.const("prx")
+    const pry = Real.const("pry")
+    const prz = Real.const("prz")
+
+    const vrx = Real.const("vrx")
+    const vry = Real.const("vry")
+    const vrz = Real.const("vrz")
+
+    const solver = new Solver()
+
+    let i = 0
+    for(let line of lines) {
+        const t = Real.const(`t${i++}`)
+        solver.add(t.ge(0))
+        solver.add(prx.add(vrx.mul(t)).eq(Real.val(line.support.x).add(Real.val(line.direction.x).mul(t))))
+        solver.add(pry.add(vry.mul(t)).eq(Real.val(line.support.y).add(Real.val(line.direction.y).mul(t))))
+        solver.add(prz.add(vrz.mul(t)).eq(Real.val(line.support.z).add(Real.val(line.direction.z).mul(t))))
+    }
+
+    await solver.check()
+    const model = solver.model()
+
+    const x = parseInt(model.get(prx).toString())
+    const y = parseInt(model.get(pry).toString())
+    const z = parseInt(model.get(prz).toString())
+
+    solver.reset()
+
+    return x + y + z
+}
