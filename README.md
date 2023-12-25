@@ -30,7 +30,8 @@ Days I solved:
 | 21 | ✅ | ❌ |
 | 22 | ✅ | ✅ |
 | 23 | ✅ | ✅ |
-| 24 | pending | pending |
+| 24 | ✅ | ✅ |
+| 25 | ✅ | ✅ |
 
 ## Following scripts are available
 
