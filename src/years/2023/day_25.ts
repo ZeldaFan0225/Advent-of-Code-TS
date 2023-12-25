@@ -11,7 +11,9 @@ interface MergedNode {
 export const INPUT_SPLIT = "\n";
 export function part_1(input: string[]): number {
     const nodes = parseNodes(input)
-    return contractGraphKargersAlgorithm(nodes)
+    // 60% of the time it works every time
+    // if it produces low number just run it again :)
+    return getGroupSizes(nodes)
 }
 
 
@@ -39,7 +41,8 @@ function parseNodes(input: string[]): Map<string, Node> {
     return map
 }
 
-function contractGraphKargersAlgorithm(input: Map<string, Node>) {
+// uses https://en.wikipedia.org/wiki/Karger%27s_algorithm
+function getGroupSizes(input: Map<string, Node>, cuts = 3) {
     let result: number | null = null
     while(result === null) {
         let nodes: MergedNode[] = [...input.values()].map(node => ({names: new Set([node.name]), children: node.children}))
@@ -57,15 +60,11 @@ function contractGraphKargersAlgorithm(input: Map<string, Node>) {
 
             nodes.push(new_node)
         }
-        if(nodes.at(0)?.children.size === 3 || nodes.at(1)?.children.size === 3) {
+        if(nodes.at(0)?.children.size === cuts || nodes.at(1)?.children.size === cuts) {
             result = nodes.at(0)!.names.size * nodes.at(1)!.names.size
         }
     }
     return result
-}
-
-function getNewName(node1: Node, node2: Node) {
-    return `${node1.name}-${node2.name}`
 }
 
 function getRandomElement(...arr: any[]) {
