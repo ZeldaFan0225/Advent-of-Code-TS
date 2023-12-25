@@ -57,11 +57,9 @@ function contractGraphKargersAlgorithm(input: Map<string, Node>) {
 
             nodes.push(new_node)
         }
-        if(nodes[0]!.children.size === 3 || nodes[1]!.children.size === 3) {
-            result = nodes[0]!.names.size * nodes[1]!.names.size
+        if(nodes.at(0)?.children.size === 3 || nodes.at(1)?.children.size === 3) {
+            result = nodes.at(0)!.names.size * nodes.at(1)!.names.size
         }
-        // for some reason the code only works when this console.log is here
-        console.log(nodes)
     }
     return result
 }
