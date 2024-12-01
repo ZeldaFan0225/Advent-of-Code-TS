@@ -1,5 +1,5 @@
 import {Command, Option} from "commander"
-import {existsSync, readFileSync, writeFileSync} from "fs";
+import {existsSync, mkdirSync, readFileSync, writeFileSync} from "fs";
 import {join} from "path"
 const program = new Command()
 
@@ -69,10 +69,16 @@ program
     .argument("<day>", "The day to init")
     .addOption(new Option("-y, --year <year>", 'The year to run').default(new Date().getFullYear().toString()))
     .action((day, {year}) => {
+        if(!existsSync(join(__dirname, "../src/years", year.toString()))) {
+            mkdirSync(join(__dirname, "../src/years", year.toString()))
+        }
+        if(!existsSync(join(__dirname, "../inputs", year.toString()))) {
+            mkdirSync(join(__dirname, "../inputs", year.toString()))
+        }
         const script_path = join(__dirname, "../src/years", year.toString(), `day_${day.toString().padStart(2, "0")}.ts`),
             sample_input_path = join(__dirname, "../inputs", year.toString(), `day_${day.toString().padStart(2, "0")}_sample.txt`),
             full_input_path = join(__dirname, "../inputs", year.toString(), `day_${day.toString().padStart(2, "0")}.txt`);
-        writeFileSync(script_path, "export const INPUT_SPLIT = undefined;\nexport function part_1(input: string): number {\nreturn input.length\n}\n\n\nexport function part_2(input: string): number {\nreturn input.length\n}")
+        writeFileSync(script_path, "export const INPUT_SPLIT = undefined;\nexport function part_1(input: string): number {\n    return input.length\n}\n\n\nexport function part_2(input: string): number {\n    return input.length\n}")
         writeFileSync(sample_input_path, "")
         writeFileSync(full_input_path, "")
 
