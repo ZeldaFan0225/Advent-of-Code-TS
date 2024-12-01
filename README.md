@@ -33,6 +33,11 @@ Days I solved:
 | 24 | ✅ | ✅ |
 | 25 | ✅ | ✅ |
 
+**2024*
+| Day | Part 1 | Part 2 |
+|---|---|---|
+| 1 | ✅ | ✅ |
+
 ## Following scripts are available
 
 `npm run run` => Runs the code  
@@ -40,5 +45,12 @@ Days I solved:
 `npm run aoc_compile` => Compiles the code and runs a day of advent of code  
 `npm run compile` => Compiles the code  
 `npm run init_day` => Creates an empty day with input
+
+### Examples
+
+`npm run aoc_compile -- 1 -s` Runs day 1 of the current year with sample data
+`npm run init_day -- 2` Inits day 2 of the current year
+
+## Credits
 
 The project structure was inspired by [ckohen's adventofcode](https://github.com/ckohen/adventofcode)
