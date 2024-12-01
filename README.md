@@ -48,8 +48,8 @@ Days I solved:
 
 ### Examples
 
-`npm run aoc_compile -- 1 -s` Runs day 1 of the current year with sample data
-`npm run init_day -- 2` Inits day 2 of the current year
+`npm run aoc_compile -- 1 -s` Runs day 1 of the current year with sample data  
+`npm run init_day -- 2` Inits day 2 of the current year  
 
 ## Credits
 
