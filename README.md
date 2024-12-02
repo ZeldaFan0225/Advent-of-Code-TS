@@ -37,6 +37,7 @@ Days I solved:
 | Day | Part 1 | Part 2 |
 |---|---|---|
 | 1 | ✅ | ✅ |
+| 2 | ✅ | ✅ |
 
 ## Following scripts are available
 
