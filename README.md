@@ -38,6 +38,7 @@ Days I solved:
 |---|---|---|
 | 1 | ✅ | ✅ |
 | 2 | ✅ | ✅ |
+| 3 | ✅ | ✅ |
 
 ## Following scripts are available
 
