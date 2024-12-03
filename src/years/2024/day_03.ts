@@ -12,5 +12,13 @@ export function part_1(input: string): number {
 
 
 export function part_2(input: string): number {
-    return input.length
+    let instructions = input.matchAll(/(^|do\(\).+)mul\((\d{1,3}),(\d{1,3})\)/g)
+    let result = 0
+    for(let instr of instructions) {
+        console.log(instr)
+        const first = parseInt(instr[2]!);
+        const second = parseInt(instr[3]!);
+        result += first * second
+    }
+    return result
 }
