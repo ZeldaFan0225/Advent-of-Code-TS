@@ -40,7 +40,7 @@ Days I solved:
 | 2 | ✅ | ✅ |
 | 3 | ✅ | ✅ |
 | 4 | ✅ | ✅ |
-| 5 | ✅ |  |
+| 5 | ✅ | ✅ |
 
 ## Following scripts are available
 
