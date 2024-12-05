@@ -50,8 +50,15 @@ export function part_2(input: string[]): number {
     for(let update of updates) {
         const valid = getIsUpdateValid(update, rules);
         if(!valid) {
-            // fix odering and return middle number as result
-
+            update.sort((a, b) => {
+                const rule = rules.get(a);
+                if(!rule) return 0;
+                if(rule.has(b)) {
+                    return -1;
+                }
+                return 1
+            })
+            total += update[Math.floor(update.length / 2)]!
         }
     }
 
