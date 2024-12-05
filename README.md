@@ -39,6 +39,8 @@ Days I solved:
 | 1 | ✅ | ✅ |
 | 2 | ✅ | ✅ |
 | 3 | ✅ | ✅ |
+| 4 | ✅ | ✅ |
+| 5 | ✅ |  |
 
 ## Following scripts are available
 
