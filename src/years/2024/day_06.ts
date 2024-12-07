@@ -1,5 +1,8 @@
 import { appendFileSync } from "fs";
 
+type Direction = "u" | "r" | "d" | "l"
+type Position = { x: number; y: number }
+
 export const INPUT_SPLIT = "\n";
 export function part_1(input: string[]): number {
     let guardPosition = {x: -1, y: -1}
@@ -50,159 +53,118 @@ export function part_1(input: string[]): number {
     return visited.size
 }
 
-type Direction = "u" | "r" | "d" | "l"
-
 // FUCK MEMORY USAGE
 export function part_2(input: string[]): number {
-    let guardPosition = {x: -1, y: -1}
-
-    const fields = input.map((i, row) => {
-        const fields = i.split("")
-        const xpos = fields.indexOf("^")
-        if(xpos >= 0) {
-            guardPosition.x = xpos
-            guardPosition.y = row
-            fields[xpos] = "."
-        }
-        return fields
-    })
-
-    let loops = 0
+    // Parse initial state
+    let guardPosition = { x: -1, y: -1 }
+    const obstacles = new Set<string>()
     
-    function emulateGuard(x: number, y: number, direction: Direction, visited: string[][], alreadyPlacedBlock: boolean) {
-        if(
-            visited[y] === undefined ||
-            visited[y]?.[x] === undefined ||
-            visited[y]?.[x] === " "
-        ) {
-            return
-        }
-        
-        //printVisited(visited, loops)
-        
-        if(visited[y]?.[x] === "#") {
-            switch(direction) {
-                case "u": visited[y+1]![x] = "r"; y++; x++; direction = "r"; break;
-                case "r": visited[y]![x-1] = "d"; y++; x--; direction = "d"; break;
-                case "d": visited[y-1]![x] = "l"; y--; x--; direction = "l"; break;
-                case "l": visited[y]![x+1] = "u"; y--; x++; direction = "u"; break;
-            }
-        } else {
-            switch(direction) {
-                case "u": {
-                    if(visited[y]?.[x] === "r") {
-                        if(alreadyPlacedBlock) {
-                            if(visited[y-1]?.[x] === "#") {
-                                loops++
-                                return;
-                            }
-                        } else {
-                            loops++
-                        }
-                    } else if(visited[y]?.[x] === "u") {
-                        loops++
-                        return;
-                    } else if(!alreadyPlacedBlock && visited[y-1]?.[x] !== "#" && visited[y]?.slice(x).includes("#")) {
-                        const clone = structuredClone(visited)
-                        clone[y]![x] = "r"
-                        emulateGuard(x+1, y, "r", clone, true)
-                    }
-                    visited[y]![x] = direction
-                    y--;
-                    break;
-                }
-                case "r": {
-                    if(visited[y]?.[x] === "d") {
-                        if(alreadyPlacedBlock) {
-                            if(visited[y]?.[x+1] === "#") {
-                                loops++
-                                return;
-                            }
-                        } else {
-                            loops++
-                        }
-                    } else if(visited[y]?.[x] === "r") {
-                        loops++
-                        return;
-                    } else if(!alreadyPlacedBlock && visited[y]![x+1] !== "#" && getColumn(visited, x, y).includes("#")) {
-                        const clone = structuredClone(visited)
-                        clone[y]![x] = "d"
-                        emulateGuard(x, y+1, "d", clone, true)
-                    }
-                    visited[y]![x] = direction
-                    x++;
-                    break;
-                }
-                case "d": {
-                    if(visited[y]?.[x] === "l") {
-                        if(alreadyPlacedBlock) {
-                            if(visited[y+1]?.[x] === "#") {
-                                loops++
-                                return;
-                            }
-                        } else {
-                            loops++
-                        }
-                    } else if(visited[y]?.[x] === "d") {
-                        loops++
-                        return;
-                    } else if(!alreadyPlacedBlock && visited[y+1]?.[x] !== "#" && visited[y]?.slice(0, x).includes("#")) {
-                        const clone = structuredClone(visited)
-                        clone[y]![x] = "l"
-                        emulateGuard(x-1, y, "l", clone, true)
-                    }
-                    visited[y]![x] = direction
-                    y++;
-                    break;
-                }
-                case "l": {
-                    if(visited[y]?.[x] === "u") {
-                        if(alreadyPlacedBlock) {
-                            if(visited[y]?.[x-1] === "#") {
-                                loops++
-                                return;
-                            }
-                        } else {
-                            loops++
-                        }
-                    } else if(visited[y]?.[x] === "l") {
-                        loops++
-                        return;
-                    } else if(!alreadyPlacedBlock && visited[y]![x-1] !== "#" && getColumn(visited, x, 0, y).includes("#")) {
-                        const clone = structuredClone(visited)
-                        clone[y]![x] = "u"
-                        emulateGuard(x, y-1, "u", clone, true)
-                    }
-                    visited[y]![x] = direction
-                    x--;
-                    break;
-                }
+    // Convert input to map of obstacles and find guard
+    const height = input.length
+    const width = input[0]!.length
+    
+    for (let y = 0; y < input.length; y++) {
+        for (let x = 0; x < input[y]!.length; x++) {
+            if (input[y]![x] === "^") {
+                guardPosition = { x, y }
+            } else if (input[y]![x] === "#") {
+                obstacles.add(`${x},${y}`)
             }
         }
-
-        emulateGuard(x, y, direction, structuredClone(visited), alreadyPlacedBlock)
     }
 
-    emulateGuard(guardPosition.x, guardPosition.y, "u", fields, false)
+    // Get initial path
+    function getInitialPath(): Set<string> {
+        const visited = new Set<string>()
+        let pos = { ...guardPosition }
+        let dir: Direction = "u"
+        
+        while (true) {
+            // Calculate next position
+            const nextPos = getNextPosition(pos, dir)
+            
+            // Check if guard left map
+            if (!isInBounds(nextPos, width, height)) {
+                break
+            }
+            
+            // If obstacle ahead, turn right
+            if (obstacles.has(`${nextPos.x},${nextPos.y}`)) {
+                dir = turnRight(dir)
+            } else {
+                pos = nextPos
+                visited.add(`${pos.x},${pos.y}`)
+            }
+        }
+        
+        return visited
+    }
 
-    return loops
+    // Check for loops with added obstacle
+    function checkForLoop(testPos: Position): boolean {
+        const testObstacle = `${testPos.x},${testPos.y}`
+        const visitedStates = new Set<string>()
+        let pos = { ...guardPosition }
+        let dir: Direction = "u"
+        
+        while (true) {
+            // Calculate next position
+            const nextPos = getNextPosition(pos, dir)
+            
+            // Check if guard left map
+            if (!isInBounds(nextPos, width, height)) {
+                return false
+            }
+            
+            // If obstacle ahead (including test obstacle)
+            if (obstacles.has(`${nextPos.x},${nextPos.y}`) || `${nextPos.x},${nextPos.y}` === testObstacle) {
+                // Check for loop while turning
+                const state = `${pos.x},${pos.y},${dir}`
+                if (visitedStates.has(state)) {
+                    return true
+                }
+                visitedStates.add(state)
+                dir = turnRight(dir)
+            } else {
+                pos = nextPos
+            }
+        }
+    }
+
+    // Main solution
+    const initialPath = getInitialPath()
+    let validPositions = 0
+
+    // Test each position from initial path
+    for (const posStr of initialPath) {
+        const [x, y] = posStr.split(",").map(Number)
+        if (checkForLoop({ x: x!, y: y! })) {
+            validPositions++
+        }
+    }
+
+    return validPositions
 }
 
-// 600 too low
-// 1212 too low
-// 1714 too high
-// not 1518
-// not 905
-// not 1249
-// not 1231
-
-function getColumn(fields: string[][], x: number, start: number, end?: number) {
-    return fields.map(f => f[x]!).slice(start, end)
+// Helper functions
+function getNextPosition(pos: Position, dir: Direction): Position {
+    switch (dir) {
+        case "u": return { x: pos.x, y: pos.y - 1 }
+        case "r": return { x: pos.x + 1, y: pos.y }
+        case "d": return { x: pos.x, y: pos.y + 1 }
+        case "l": return { x: pos.x - 1, y: pos.y }
+    }
 }
 
-function printVisited(visited: string[][], loopcount: number) {
-    // write it to a txt file
-    appendFileSync("visited.txt", visited.map(r => r.join("")).join("\n") + "\n" + loopcount + "\n\n")
-    //console.log("")
-    //console.log(visited.map(r => r.join("")).join("\n"))
+function turnRight(dir: Direction): Direction {
+    switch (dir) {
+        case "u": return "r"
+        case "r": return "d"
+        case "d": return "l"
+        case "l": return "u"
+    }
+}
+
+function isInBounds(pos: Position, width: number, height: number): boolean {
+    return pos.x >= 0 && pos.x < width && pos.y >= 0 && pos.y < height
 }
