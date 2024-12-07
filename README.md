@@ -41,7 +41,7 @@ Days I solved:
 | 3 | ✅ | ✅ |
 | 4 | ✅ | ✅ |
 | 5 | ✅ | ✅ |
-| 6 | ✅ | ❌ |
+| 6 | ✅ | ✅ (with the power of ai) |
 | 7 | ✅ | ✅ |
 
 ## Following scripts are available
