@@ -1,7 +1,8 @@
+import { appendFileSync } from "fs";
+
 export const INPUT_SPLIT = "\n";
 export function part_1(input: string[]): number {
     let guardPosition = {x: -1, y: -1}
-    let direction = "u";
     const visited = new Set();
 
     const fields = input.map((i, row) => {
@@ -11,67 +12,49 @@ export function part_1(input: string[]): number {
             guardPosition.x = xpos
             guardPosition.y = row
             fields[xpos] = "."
-            visited.add(`${xpos},${row}`)
         }
         return fields
     })
-    const fieldWidth = fields[0]!.length
     
-    while(
-        (guardPosition.x >= 0 && guardPosition.x < fieldWidth) &&
-        (guardPosition.y >= 0 && guardPosition.y < fields.length)
-    ) {
-        visited.add(`${guardPosition.x},${guardPosition.y}`)
+    function emulateGuard(x: number, y: number, direction: "u" | "r" | "d" | "l") {
+        if(
+            fields[y] === undefined ||
+            fields[y]?.[x] === undefined ||
+            fields[y]?.[x] === " "
+        ) {
+            return
+        }
         
-        switch(direction) {
-            case "u": {
-                if(fields[guardPosition.y - 1]?.[guardPosition.x] !== "#") {
-                    guardPosition.y--;
-                } else {
-                    direction = "r";
-                    guardPosition.x++
-                }
-                break;
+        if(fields[y]?.[x] === "#") {
+            switch(direction) {
+                case "u": y++; x++; direction = "r"; break;
+                case "r": y++; x--; direction = "d"; break;
+                case "d": y--; x--; direction = "l"; break;
+                case "l": y--; x++; direction = "u"; break;
             }
-            case "r": {
-                if(fields[guardPosition.y]?.[guardPosition.x + 1] !== "#") {
-                    guardPosition.x++;
-                } else {
-                    direction = "d";
-                    guardPosition.y++
-                }
-                break;
-            }
-            case "d": {
-                if(fields[guardPosition.y + 1]?.[guardPosition.x] !== "#") {
-                    guardPosition.y++;
-                } else {
-                    direction = "l";
-                    guardPosition.x--
-                }
-                break;
-            }
-            case "l": {
-                if(fields[guardPosition.y]?.[guardPosition.x - 1] !== "#") {
-                    guardPosition.x--;
-                } else {
-                    direction = "u";
-                    guardPosition.y--
-                }
-                break;
+        } else {
+            visited.add(`${x},${y}`)
+            switch(direction) {
+                case "u": y--; break;
+                case "r": x++; break;
+                case "d": y++; break;
+                case "l": x--; break;
             }
         }
+
+        emulateGuard(x, y, direction)
     }
-    
+
+    emulateGuard(guardPosition.x, guardPosition.y, "u")
+
     return visited.size
 }
 
+type Direction = "u" | "r" | "d" | "l"
 
-
+// FUCK MEMORY USAGE
 export function part_2(input: string[]): number {
     let guardPosition = {x: -1, y: -1}
-    let direction = "u";
-    let loops = 0;
 
     const fields = input.map((i, row) => {
         const fields = i.split("")
@@ -79,115 +62,147 @@ export function part_2(input: string[]): number {
         if(xpos >= 0) {
             guardPosition.x = xpos
             guardPosition.y = row
+            fields[xpos] = "."
         }
         return fields
     })
-    const fieldWidth = fields[0]!.length
-    
-    while(
-        (guardPosition.x >= 0 && guardPosition.x < fieldWidth) &&
-        (guardPosition.y >= 0 && guardPosition.y < fields.length)
-    ) {
-        let prevPos = {x: guardPosition.x, y: guardPosition.y}
-        
-        switch(direction) {
-            case "u": {
-                if(
-                    fields[prevPos.y]![prevPos.x] === "r" ||
-                    getIsLoopable(fields[prevPos.y]!.slice(prevPos.x), "d")
-                ) {
-                    console.log("loopable")
-                    loops++;
-                }
 
-                if(fields[guardPosition.y - 1]?.[guardPosition.x] !== "#") {
-                    guardPosition.y--;
-                } else {
-                    direction = "r";
-                    guardPosition.x++
-                }
-                break;
+    let loops = 0
+    
+    function emulateGuard(x: number, y: number, direction: Direction, visited: string[][], alreadyPlacedBlock: boolean) {
+        if(
+            visited[y] === undefined ||
+            visited[y]?.[x] === undefined ||
+            visited[y]?.[x] === " "
+        ) {
+            return
+        }
+        
+        //printVisited(visited, loops)
+        
+        if(visited[y]?.[x] === "#") {
+            switch(direction) {
+                case "u": visited[y+1]![x] = "r"; y++; x++; direction = "r"; break;
+                case "r": visited[y]![x-1] = "d"; y++; x--; direction = "d"; break;
+                case "d": visited[y-1]![x] = "l"; y--; x--; direction = "l"; break;
+                case "l": visited[y]![x+1] = "u"; y--; x++; direction = "u"; break;
             }
-            case "r": {
-                if(
-                    fields[prevPos.y]![prevPos.x] === "d" ||
-                    getIsLoopable(getColumn(fields, prevPos.x, prevPos.y), "l")
-                ) {
-                    console.log("loopable")
-                    loops ++;
+        } else {
+            switch(direction) {
+                case "u": {
+                    if(visited[y]?.[x] === "r") {
+                        if(alreadyPlacedBlock) {
+                            if(visited[y-1]?.[x] === "#") {
+                                loops++
+                                return;
+                            }
+                        } else {
+                            loops++
+                        }
+                    } else if(visited[y]?.[x] === "u") {
+                        loops++
+                        return;
+                    } else if(!alreadyPlacedBlock && visited[y-1]?.[x] !== "#" && visited[y]?.slice(x).includes("#")) {
+                        const clone = structuredClone(visited)
+                        clone[y]![x] = "r"
+                        emulateGuard(x+1, y, "r", clone, true)
+                    }
+                    visited[y]![x] = direction
+                    y--;
+                    break;
                 }
-                if(fields[guardPosition.y]?.[guardPosition.x + 1] !== "#") {
-                    guardPosition.x++;
-                } else {
-                    direction = "d";
-                    guardPosition.y++
+                case "r": {
+                    if(visited[y]?.[x] === "d") {
+                        if(alreadyPlacedBlock) {
+                            if(visited[y]?.[x+1] === "#") {
+                                loops++
+                                return;
+                            }
+                        } else {
+                            loops++
+                        }
+                    } else if(visited[y]?.[x] === "r") {
+                        loops++
+                        return;
+                    } else if(!alreadyPlacedBlock && visited[y]![x+1] !== "#" && getColumn(visited, x, y).includes("#")) {
+                        const clone = structuredClone(visited)
+                        clone[y]![x] = "d"
+                        emulateGuard(x, y+1, "d", clone, true)
+                    }
+                    visited[y]![x] = direction
+                    x++;
+                    break;
                 }
-                break;
-            }
-            case "d": {
-                if(
-                    fields[prevPos.y]![prevPos.x] === "l" ||
-                    getIsLoopable(fields[prevPos.y]!.slice(0, prevPos.x).reverse(), "u")
-                ) {
-                    console.log("loopable")
-                    loops ++;
+                case "d": {
+                    if(visited[y]?.[x] === "l") {
+                        if(alreadyPlacedBlock) {
+                            if(visited[y+1]?.[x] === "#") {
+                                loops++
+                                return;
+                            }
+                        } else {
+                            loops++
+                        }
+                    } else if(visited[y]?.[x] === "d") {
+                        loops++
+                        return;
+                    } else if(!alreadyPlacedBlock && visited[y+1]?.[x] !== "#" && visited[y]?.slice(0, x).includes("#")) {
+                        const clone = structuredClone(visited)
+                        clone[y]![x] = "l"
+                        emulateGuard(x-1, y, "l", clone, true)
+                    }
+                    visited[y]![x] = direction
+                    y++;
+                    break;
                 }
-                if(fields[guardPosition.y + 1]?.[guardPosition.x] !== "#") {
-                    guardPosition.y++;
-                } else {
-                    direction = "l";
-                    guardPosition.x--
+                case "l": {
+                    if(visited[y]?.[x] === "u") {
+                        if(alreadyPlacedBlock) {
+                            if(visited[y]?.[x-1] === "#") {
+                                loops++
+                                return;
+                            }
+                        } else {
+                            loops++
+                        }
+                    } else if(visited[y]?.[x] === "l") {
+                        loops++
+                        return;
+                    } else if(!alreadyPlacedBlock && visited[y]![x-1] !== "#" && getColumn(visited, x, 0, y).includes("#")) {
+                        const clone = structuredClone(visited)
+                        clone[y]![x] = "u"
+                        emulateGuard(x, y-1, "u", clone, true)
+                    }
+                    visited[y]![x] = direction
+                    x--;
+                    break;
                 }
-                break;
-            }
-            case "l": {
-                if(
-                    fields[prevPos.y]![prevPos.x] === "u" ||
-                    getIsLoopable(getColumn(fields, prevPos.x, 0, prevPos.y).reverse(), "r")
-                ) {
-                    console.log("loopable")
-                    loops ++;
-                }
-                if(fields[guardPosition.y]?.[guardPosition.x - 1] !== "#") {
-                    guardPosition.x--;
-                } else {
-                    direction = "u";
-                    guardPosition.y--
-                }
-                break;
             }
         }
 
-        fields[prevPos.y]![prevPos.x] = direction;
-        console.log(fields.map(a => a.join("")).join("\n"))
-        console.log("")
+        emulateGuard(x, y, direction, structuredClone(visited), alreadyPlacedBlock)
     }
-    
+
+    emulateGuard(guardPosition.x, guardPosition.y, "u", fields, false)
+
     return loops
 }
+
 // 600 too low
 // 1212 too low
 // 1714 too high
 // not 1518
+// not 905
+// not 1249
+// not 1231
 
 function getColumn(fields: string[][], x: number, start: number, end?: number) {
     return fields.map(f => f[x]!).slice(start, end)
 }
 
-function getIsLoopable(subArray: string[], neededDirection: "u" | "r" | "d" | "l") {
-    //console.log(subArray)
-    let loopable = false
-    let needBlock = false
-    for(let char of subArray) {
-        if(char === "#") {
-            loopable = needBlock;
-            break;
-        }
-        needBlock = false;
-        if(char === neededDirection) {
-            needBlock = true;
-        }
-    }
-    if(loopable) console.log(neededDirection, subArray)
-    return loopable
+function printVisited(visited: string[][], loopcount: number) {
+    // write it to a txt file
+    appendFileSync("visited.txt", visited.map(r => r.join("")).join("\n") + "\n" + loopcount + "\n\n")
+    //console.log("")
+    //console.log(visited.map(r => r.join("")).join("\n"))
 }
