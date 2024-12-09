@@ -43,6 +43,8 @@ Days I solved:
 | 5 | ✅ | ✅ |
 | 6 | ✅ | ✅ (with the power of ai) |
 | 7 | ✅ | ✅ |
+| 8 | ✅ | ✅ |
+| 9 | ✅ | ✅ |
 
 ## Following scripts are available
 
