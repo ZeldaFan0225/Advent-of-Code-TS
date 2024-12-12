@@ -5,7 +5,7 @@ export function part_1(input: string[]): number {
     for(let y = 0; y < input.length; y++) {
         for(let x = 0; x < input[y]!.length; x++) {
             if(!visited.has(`${y},${x}`)) {
-                total += calculateFencePrice(y, x, input[y]![x]!, input, visited, 1)
+                total += calculateFencePrice(y, x, input, visited, 1)
             }
         }
     }
@@ -19,7 +19,7 @@ export function part_2(input: string[]): number {
     for(let y = 0; y < input.length; y++) {
         for(let x = 0; x < input[y]!.length; x++) {
             if(!visited.has(`${y},${x}`)) {
-                total += calculateFencePrice(y, x, input[y]![x]!, input, visited, 2)
+                total += calculateFencePrice(y, x, input, visited, 2)
             }
         }
     }
@@ -27,7 +27,8 @@ export function part_2(input: string[]): number {
     return total
 }
 
-function calculateFencePrice(y: number, x: number, letter: string, grid: string[], visited: Set<string>, part: 1 | 2): number {
+function calculateFencePrice(y: number, x: number, grid: string[], visited: Set<string>, part: 1 | 2): number {
+    let letter = grid[y]![x]!
     let queue: [number, number][] = [[y, x]]
     let area = 0;
     let perimiter = 0;
