@@ -48,6 +48,7 @@ Days I solved:
 | 10 | ✅ | ✅ |
 | 11 | ✅ | ✅ |
 | 12 | ✅ | ✅ |
+| 13 | ✅ | ✅ |
 
 ## Following scripts are available
 
