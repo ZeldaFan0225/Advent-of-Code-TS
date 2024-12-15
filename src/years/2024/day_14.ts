@@ -72,7 +72,7 @@ export function part_2(input: string[], visualize?: boolean): number {
             break;
         }
     }
-    return seconds
+    return seconds - 1
 }
 
 function printRobotPositions(robots: Robot[], seconds: number) {
