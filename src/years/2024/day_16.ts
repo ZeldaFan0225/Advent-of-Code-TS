@@ -1,301 +1,183 @@
-import * as fs from 'fs';
-
-interface Instruction {
+interface Path {
     coordinates: [number, number];
     direction: string;
     score: number;
-    path: string[];
 }
 
-function log(message: string) {
-    //console.log(message);
-    //fs.appendFileSync('output.txt', message + '\n');
-}
+const MOVEMENTS = [
+    [0, -1, "^"],
+    [1, 0, ">"],
+    [0, 1, "v"],
+    [-1, 0, "<"],
+] as const;
 
 export const INPUT_SPLIT = "\n";
 export function part_1(input: string[]): number {
-    // Clear the output file at the start
-    fs.writeFileSync('output.txt', '');
-
-    let exploreNext: Instruction[] = [];
-    let goal: [number, number] = [0, 0];
-    const explored = new Map<string, Set<string>>();
-    let bestPath: string[] = [];
-
-    const grid = input.map((line, i) => {
-        const cells = line.split('');
-        const sIndex = cells.indexOf("S")
-        if(sIndex !== -1) {
-            // Start exploring in all four directions
-            exploreNext.push({
-                    coordinates: [i, sIndex],
-                    direction: ">",
-                    score: 0,
-                    path: [`${i},${sIndex},>`]
+    const walls = new Set<string>();
+    const queue: Path[] = [];
+    const end: [number, number] = [0, 0];
+    for(let y = 0; y < input.length; y++) {
+        for(let x = 0; x < input[y]!.length; x++) {
+            switch(input[y]![x]) {
+                case "#": {
+                    walls.add(`${x},${y}`);
+                    break;
                 }
-            );
-            cells[sIndex] = "."
+                case "S": {
+                    queue.push({coordinates: [x, y], direction: ">", score: 0});
+                    break;
+                }
+                case "E": {
+                    end[0] = x;
+                    end[1] = y;
+                    break;
+                }
+            }
         }
-        const eIndex = cells.indexOf('E')
-        if(eIndex !== -1) {
-            goal = [i, eIndex];
-            cells[eIndex] = "."
-        }
-        return cells;
-    });
+    }
 
+    const visited = new Map<string, number>();
+
+    let current;
     let lowest = Infinity;
-
-    while(exploreNext.length > 0) {
-        const current = exploreNext.shift()!;
-        const [y, x] = current.coordinates;
-        const key = `${y},${x}`;
-        
-        // Track direction with position to allow different approaches to same cell
-        if(!explored.has(key)) {
-            explored.set(key, new Set());
-        }
-        if(explored.get(key)!.has(current.direction)) {
-            continue;
-        }
-        explored.get(key)!.add(current.direction);
-
-        if(y === goal[0] && x === goal[1]) {
+    while((current = queue.shift()) !== undefined) {
+        console.log(queue.length);
+        const [x, y] = current.coordinates;
+        if(x === end[0] && y === end[1]) {
+            //printPath(current!, walls, input[0]!.length, input.length);
             if(current.score < lowest) {
                 lowest = current.score;
-                bestPath = current.path;
             }
             continue;
         }
-
-        const directions: [number, number, string][] = [
-            [0, 1, ">"],   // right
-            [0, -1, "<"],  // left
-            [1, 0, "v"],   // down
-            [-1, 0, "^"]   // up
-        ];
-
-        for(const [dy, dx, dir] of directions) {
-            const newY = y + dy;
+        const key = `${x},${y},${current.direction}`;
+        if(visited.has(key)) {
+            if(visited.get(key)! <= current.score) {
+                // if current score is higher, we don't need to continue
+                continue;
+            }
+        }
+        visited.set(key, current.score);
+        
+        for(const [dx, dy, dir] of MOVEMENTS) {
             const newX = x + dx;
-            
-            // Check if new position is valid and not a wall
-            const row = grid[newY];
-            if(!row || row[newX] === undefined || row[newX] === "#") {
+            const newY = y + dy;
+            const newVisited = `${newX},${newY}`;
+            if(walls.has(newVisited)) {
                 continue;
             }
 
             let newScore = current.score;
-            
-            // If continuing in same direction, add 1
-            // If turning, add 1000
-            if(
-                (current.direction === ">" && dir === ">") ||
-                (current.direction === "<" && dir === "<") ||
-                (current.direction === "^" && dir === "^") ||
-                (current.direction === "v" && dir === "v")
-            ) {
+
+            if(dir === current.direction) {
                 newScore += 1;
+            } else if(
+                current.direction === "<" && dir === ">" ||
+                current.direction === ">" && dir === "<" ||
+                current.direction === "^" && dir === "v" ||
+                current.direction === "v" && dir === "^"
+            ) {
+                // moving back not allowed, because it makes no sense
+                continue;
             } else {
+                // turning and moving there
                 newScore += 1001;
             }
-
-            exploreNext.push({
-                coordinates: [newY, newX],
-                direction: dir,
-                score: newScore,
-                path: [...current.path, `${newY},${newX},${dir}`]
-            });
+            queue.push({coordinates: [newX, newY], direction: dir, score: newScore});
         }
-
-        // Sort by score to explore lower-cost paths first
-        exploreNext.sort((a, b) => a.score - b.score);
     }
-
-    // Print the best path
-    log("Best path:");
-    const visualGrid = grid.map(row => [...row]);
-    bestPath.forEach(step => {
-        const parts = step.split(',');
-        if (parts.length === 3) {
-            const y = Number(parts[0]);
-            const x = Number(parts[1]);
-            const dir = parts[2];
-            if (dir && visualGrid[y] && visualGrid[y]?.[x] !== undefined) {
-                visualGrid[y]![x] = dir;
-            }
-        }
-    });
-    log(visualGrid.map(row => row.join('')).join('\n'));
-    log(`Total cost: ${lowest}`);
 
     return lowest;
 }
 
+
+interface ExtendedPath extends Path {
+    path: string[];
+}
+
 export function part_2(input: string[]): number {
-    // Clear the output file at the start
-    fs.writeFileSync('output.txt', '');
-
-    let exploreNext: Instruction[] = [];
-    let goal: [number, number] = [0, 0];
-    // Track visited states and their scores
-    const visited = new Map<string, number>();
-    let bestPaths: string[][] = [];
-    let lowest = Infinity;
-
-    const grid = input.map((line, i) => {
-        const cells = line.split('');
-        const sIndex = cells.indexOf("S")
-        if(sIndex !== -1) {
-            exploreNext.push({
-                coordinates: [i, sIndex],
-                direction: ">",
-                score: 0,
-                path: [`${i},${sIndex},>`]
-            });
-            cells[sIndex] = "."
-        }
-        const eIndex = cells.indexOf('E')
-        if(eIndex !== -1) {
-            goal = [i, eIndex];
-            cells[eIndex] = "."
-        }
-        return cells;
-    });
-
-    // Calculate maximum reasonable path length
-    const maxPathLength = grid.length * grid[0]!.length * 4;  // 4 directions per cell
-
-    function printCurrentPath(current: Instruction) {
-        const visualGrid = grid.map(row => [...row]);
-        current.path.forEach(step => {
-            const parts = step.split(',');
-            if (parts.length === 3) {
-                const y = Number(parts[0]);
-                const x = Number(parts[1]);
-                const dir = parts[2];
-                if (dir && visualGrid[y] && visualGrid[y]?.[x] !== undefined) {
-                    visualGrid[y]![x] = dir;
+    const walls = new Set<string>();
+    const queue: ExtendedPath[] = [];
+    const end: [number, number] = [0, 0];
+    for(let y = 0; y < input.length; y++) {
+        for(let x = 0; x < input[y]!.length; x++) {
+            switch(input[y]![x]) {
+                case "#": {
+                    walls.add(`${x},${y}`);
+                    break;
+                }
+                case "S": {
+                    queue.push({coordinates: [x, y], direction: ">", score: 0, path: ["0,0,>"]});
+                    break;
+                }
+                case "E": {
+                    end[0] = x;
+                    end[1] = y;
+                    break;
                 }
             }
-        });
-        return visualGrid.map(row => row.join('')).join('\n');
+        }
     }
 
-    while(exploreNext.length > 0) {
-        const current = exploreNext.shift()!;
-        const [y, x] = current.coordinates;
-        
-        // Skip if path is too long (prevents infinite loops)
-        if(current.path.length > maxPathLength) {
-            continue;
-        }
+    const visited = new Map<string, number>();
 
-        // Create a unique key for this state
-        const stateKey = `${y},${x},${current.direction}`;
-        
-        // Check if we've seen this state before with a better or equal score
-        const existingScore = visited.get(stateKey);
-        if(existingScore !== undefined && current.score > existingScore) {
-            continue;
-        }
-        
-        // Update the best score for this state
-        visited.set(stateKey, current.score);
-
-        if(y === goal[0] && x === goal[1]) {
-            if(current.score <= lowest) {
-                if(current.score < lowest) {
-                    log(`Found new best path to goal with score ${current.score}`);
-                    lowest = current.score;
-                    bestPaths = [current.path];
-                } else {
-                    log(`Found another path to goal with equal best score ${current.score}`);
-                    bestPaths.push(current.path);
-                }
+    let current;
+    let lowest = Infinity;
+    let lowestPaths: ExtendedPath[] = [];
+    while((current = queue.shift()) !== undefined) {
+        const [x, y] = current.coordinates;
+        if(x === end[0] && y === end[1]) {
+            if(current.score < lowest) {
+                lowestPaths = [current];
+                lowest = current.score;
+            } else if(current.score === lowest) {
+                lowestPaths.push(current);
             }
             continue;
         }
-
-        const directions: [number, number, string][] = [
-            [0, 1, ">"],   // right
-            [0, -1, "<"],  // left
-            [1, 0, "v"],   // down
-            [-1, 0, "^"]   // up
-        ];
-
-        for(const [dy, dx, dir] of directions) {
-            const newY = y + dy;
+        const key = `${x},${y},${current.direction}`;
+        if(visited.has(key)) {
+            if(visited.get(key)! < current.score) {
+                // if current score is higher, we don't need to continue
+                continue;
+            }
+        }
+        visited.set(key, current.score);
+        
+        for(const [dx, dy, dir] of MOVEMENTS) {
             const newX = x + dx;
-            
-            // Check if new position is valid and not a wall
-            const row = grid[newY];
-            if(!row || row[newX] === undefined || row[newX] === "#") {
+            const newY = y + dy;
+            const newVisited = `${newX},${newY}`;
+            if(walls.has(newVisited)) {
                 continue;
             }
 
             let newScore = current.score;
-            
-            // If continuing in same direction, add 1
-            // If turning, add 1000
-            if(
-                (current.direction === ">" && dir === ">") ||
-                (current.direction === "<" && dir === "<") ||
-                (current.direction === "^" && dir === "^") ||
-                (current.direction === "v" && dir === "v")
-            ) {
+
+            if(dir === current.direction) {
                 newScore += 1;
             } else if(
-                (current.direction === "<" && dir === ">") ||
-                (current.direction === ">" && dir === "<") ||
-                (current.direction === "v" && dir === "^") ||
-                (current.direction === "^" && dir === "v")
+                current.direction === "<" && dir === ">" ||
+                current.direction === ">" && dir === "<" ||
+                current.direction === "^" && dir === "v" ||
+                current.direction === "v" && dir === "^"
             ) {
+                // moving back not allowed, because it makes no sense
                 continue;
             } else {
+                // turning and moving there
                 newScore += 1001;
             }
-
-            // Only add new path if it's not worse than what we've seen
-            const newStateKey = `${newY},${newX},${dir}`;
-            const newStateScore = visited.get(newStateKey);
-            if(newStateScore === undefined || newScore <= newStateScore) {
-                exploreNext.push({
-                    coordinates: [newY, newX],
-                    direction: dir,
-                    score: newScore,
-                    path: [...current.path, `${newY},${newX},${dir}`]
-                });
-            }
+            queue.push({coordinates: [newX, newY], direction: dir, score: newScore, path: [...current.path, `${newX},${newY},${dir}`]});
         }
-
-        // Sort by score to explore lower-cost paths first
-        exploreNext.sort((a, b) => a.score - b.score);
     }
 
-    // Collect all unique tiles from all best paths
-    const uniqueTiles = new Set<string>();
-    bestPaths.forEach(path => {
-        path.forEach(step => {
-            const [y, x] = step.split(',');
-            uniqueTiles.add(`${y},${x}`);
-        });
-    });
-
-    // Print visualization of used tiles
-    log("\nFinal Results:");
-    log("Used tiles (O):");
-    const visualGrid = grid.map(row => [...row]);
-    uniqueTiles.forEach(tile => {
-        const [y, x] = tile.split(',').map(Number) as [number, number];
-        if (visualGrid[y] && visualGrid[y]?.[x] !== undefined) {
-            visualGrid[y]![x] = "O";
+    let tiles = new Set<string>();
+    for(const path of lowestPaths) {
+        for(const step of path.path) {
+            tiles.add(step.slice(0, -2));
         }
-    });
-    log(visualGrid.map(row => row.join('')).join('\n'));
+    }
 
-    log(`Found ${bestPaths.length} paths with lowest cost ${lowest}`);
-    log(`Number of unique tiles visited: ${uniqueTiles.size}`);
-
-    return uniqueTiles.size;
+    return tiles.size;
 }
