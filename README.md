@@ -51,6 +51,8 @@ Days I solved:
 | 13 | ✅ | ✅ |
 | 14 | ✅ | ✅ |
 | 15 | ✅ | ✅ |
+| 16 | ✅ | ✅ |
+| 17 | ✅ | ✅ [logic borrowed from](https://github.com/DJtheRedstoner/AoC2024/blob/main/src/main/java/me/djtheredstoner/aoc2024/days/Day17.java) |
 
 ## Following scripts are available
 

@@ -9,8 +9,8 @@ enum InputTypes {
 }
 
 interface DayFile {
-    part_1: (input: string | string[], visualize?: boolean) => Promise<number>
-    part_2: (input: string | string[], visualize?: boolean) => Promise<number>,
+    part_1: (input: string | string[], visualize?: boolean) => Promise<any>
+    part_2: (input: string | string[], visualize?: boolean) => Promise<any>,
     INPUT_SPLIT?: string
 }
 

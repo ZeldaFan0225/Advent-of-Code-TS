@@ -5,41 +5,41 @@ export const INPUT_SPLIT = undefined;
  * Return value > -1 indicates the new position of the instruction pointer
  */
 const OPERATIONS = [
-    (operand: bigint, registers: [bigint, bigint, bigint], output: string[], instructionPointerPosition: number) => {
+    (operand: bigint, registers: [bigint, bigint, bigint], output: number[], instructionPointerPosition: number) => {
         const denominator = 2n ** getComboOperand(operand, registers);
         const numerator = registers[0]!;
         registers[0] = numerator / denominator;
         return instructionPointerPosition + 2;
     },
-    (operand: bigint, registers: [bigint, bigint, bigint], output: string[], instructionPointerPosition: number) => {
+    (operand: bigint, registers: [bigint, bigint, bigint], output: number[], instructionPointerPosition: number) => {
         registers[1] = registers[1] ^ operand;
         return instructionPointerPosition + 2;
     },
-    (operand: bigint, registers: [bigint, bigint, bigint], output: string[], instructionPointerPosition: number) => {
+    (operand: bigint, registers: [bigint, bigint, bigint], output: number[], instructionPointerPosition: number) => {
         const val = getComboOperand(operand, registers) % 8n;
         registers[1] = val;
         return instructionPointerPosition + 2;
     },
-    (operand: bigint, registers: [bigint, bigint, bigint], output: string[], instructionPointerPosition: number) => {
+    (operand: bigint, registers: [bigint, bigint, bigint], output: number[], instructionPointerPosition: number) => {
         if(registers[0] === 0n) return instructionPointerPosition + 2;
         return Number(operand);
     },
-    (operand: bigint, registers: [bigint, bigint, bigint], output: string[], instructionPointerPosition: number) => {
+    (operand: bigint, registers: [bigint, bigint, bigint], output: number[], instructionPointerPosition: number) => {
         registers[1] = registers[1] ^ registers[2];
         return instructionPointerPosition + 2;
     },
-    (operand: bigint, registers: [bigint, bigint, bigint], output: string[], instructionPointerPosition: number) => {
+    (operand: bigint, registers: [bigint, bigint, bigint], output: number[], instructionPointerPosition: number) => {
         const val = getComboOperand(operand, registers) % 8n;
-        output.push(`${val}`);
+        output.push(Number(val));
         return instructionPointerPosition + 2;
     },
-    (operand: bigint, registers: [bigint, bigint, bigint], output: string[], instructionPointerPosition: number) => {
+    (operand: bigint, registers: [bigint, bigint, bigint], output: number[], instructionPointerPosition: number) => {
         const denominator = 2n ** getComboOperand(operand, registers);
         const numerator = registers[0]!;
         registers[1] = numerator / denominator;
         return instructionPointerPosition + 2;
     },
-    (operand: bigint, registers: [bigint, bigint, bigint], output: string[], instructionPointerPosition: number) => {
+    (operand: bigint, registers: [bigint, bigint, bigint], output: number[], instructionPointerPosition: number) => {
         const denominator = 2n ** getComboOperand(operand, registers);
         const numerator = registers[0]!;
         registers[2] = numerator / denominator;
@@ -66,7 +66,7 @@ function getComboOperand(operand: bigint, registers: [bigint, bigint, bigint]): 
 
 function getOutputFromProgram(registers: [bigint, bigint, bigint], instructions: bigint[]) {
     let instructionPointer = 0;
-    let output: string[] = []
+    let output: number[] = []
     while(instructionPointer < instructions.length) {
         instructionPointer = OPERATIONS[Number(instructions[instructionPointer]!)]!(
             instructions[instructionPointer + 1]!,
@@ -75,10 +75,10 @@ function getOutputFromProgram(registers: [bigint, bigint, bigint], instructions:
             instructionPointer
         )!;
     }
-    return output.join(",");
+    return output;
 }
 
-export function part_1(input: string): number {
+export function part_1(input: string): string {
     const reg = /^Register A: (?<rega>\d+)\nRegister B: (?<regb>\d+)\nRegister C: (?<regc>\d+)\n\nProgram: (?<prog>.+)/g;
     const {rega, regb, regc, prog} = reg.exec(input)!.groups!;
     
@@ -87,55 +87,64 @@ export function part_1(input: string): number {
 
     const output = getOutputFromProgram(registers, instructions);
 
-    console.log("Correct Part 1 result: ", output);
-    return -1;
-}
-
-function findSeedValue(instructions: bigint[]): bigint {
-    // We need to find a value that, when processed through the program,
-    // will output the instruction sequence itself
-    
-    // Each instruction needs 3 bits (since output is mod 8)
-    // We'll build the number from right to left
-    let value = 0n;
-    
-    // Process instructions in reverse
-    for (let i = instructions.length - 1; i >= 0; i--) {
-        // Get the target instruction value
-        const target = instructions[i]! % 8n;
-        
-        // Shift left by 3 bits to make room for the next value
-        // We only need 3 bits per value since we're working with mod 8
-        value = value << 3n;
-        
-        // Add this instruction's bits
-        value = value | target;
-    }
-    
-    // Add minimal padding at the start to handle initial divisions
-    value = value << 1n;
-    
-    return value;
+    return output.join(",");
 }
 
 export function part_2(input: string): bigint {
+    // Parse input to get initial register values and program instructions
     const reg = /^Register A: (?<rega>\d+)\nRegister B: (?<regb>\d+)\nRegister C: (?<regc>\d+)\n\nProgram: (?<prog>.+)/g;
-    const {prog} = reg.exec(input)!.groups!;
+    const {regb, regc, prog} = reg.exec(input)!.groups!;
     
+    const initialRegisterB = BigInt(regb!);
+    const initialRegisterC = BigInt(regc!);
     const instructions = prog!.split(",").map(x => BigInt(x));
+
+    // Start with initial candidate value 0
+    let candidateValues: bigint[] = [0n];
     
-    // Calculate the required initial value for register A
-    const result = findSeedValue(instructions);
+    // Get expected output sequence by reversing program instructions
+    const expectedOutputSequence = [...instructions].reverse().map(x => Number(x));
     
-    // Verify our result
-    const output = getOutputFromProgram([result, 0n, 0n], instructions);
-    const expectedOutput = prog;
-    
-    if (output !== expectedOutput) {
-        console.log("Got output:", output);
-        console.log("Expected:", expectedOutput);
-        throw new Error("Failed to find correct seed value");
+    // For each expected output value in the sequence
+    for (const expectedOutput of expectedOutputSequence) {
+        const validCandidates: bigint[] = [];
+        
+        // Try each current candidate value
+        for (const candidateValue of candidateValues) {
+            // For each possible 3-bit value (0-7)
+            for (let bitValue = 0; bitValue < 8; bitValue++) {
+                // Create new test value by shifting left 3 bits and adding new bit value
+                const testValue = (candidateValue << 3n) | BigInt(bitValue);
+                
+                // Run program with this test value
+                const programOutput = getOutputFromProgram(
+                    [testValue, initialRegisterB, initialRegisterC],
+                    instructions
+                );
+                if(!programOutput.length) {
+                    // If program halts, skip this test value
+                    continue;
+                }
+                
+                // Parse first output value and compare with expected
+                const firstOutput = programOutput[0]!;
+                if (firstOutput === expectedOutput) {
+                    validCandidates.push(testValue);
+                }
+            }
+        }
+        
+        // If no valid candidates found, program is unsolvable
+        if (validCandidates.length === 0) {
+            console.log("No solution found");
+            return 0n;
+        }
+        
+        // Update candidates for next iteration
+        candidateValues = validCandidates;
     }
     
-    return result;
+    // Return smallest valid input value found
+    candidateValues.sort((a, b) => a < b ? -1 : a > b ? 1 : 0);
+    return candidateValues[0]!;
 }
