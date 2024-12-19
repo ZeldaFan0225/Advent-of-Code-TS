@@ -23,28 +23,46 @@ export function part_1(input: string[]): number {
     }
     // long combinations first to get to the goal faster
     towels.sort((a, b) => b.length - a.length)
+    
     let total = 0;
+    const memo = new Map<string, boolean>();
+    
     for(const comb of rawCombinations.split("\n")) {
-        const possibleCount = isCombinationPossible(towels, translateCombination(comb))
-        if(possibleCount) {
-            total++
+        if (checkCombinationPossible(towels, translateCombination(comb), memo)) {
+            total++;
         }
     }
     
-    return total
+    return total;
 }
 
-function isCombinationPossible(towels: number[][], combination: number[], alreadyExplored: Set<string> = new Set()): boolean {
-    if(alreadyExplored.has(combination.join(""))) return false;
-    alreadyExplored.add(combination.join(""))
-    if(combination.length === 0) return true;
-    for(const towel of towels) {
-        if (towel.every((c, i) => c === combination[i])) {
-            const isPossible = isCombinationPossible(towels, combination.slice(towel.length), alreadyExplored)
-            if(isPossible) return true
+function checkCombinationPossible(towels: number[][], combination: number[], memo: Map<string, boolean>): boolean {
+    const key = combination.join("");
+    if (memo.has(key)) return memo.get(key)!;
+    if (combination.length === 0) return true;
+    
+    for (const towel of towels) {
+        if (towel.length > combination.length) continue;
+        
+        // Fast check for match using array comparison
+        let matches = true;
+        for (let i = 0; i < towel.length; i++) {
+            if (towel[i] !== combination[i]) {
+                matches = false;
+                break;
+            }
+        }
+        
+        if (matches) {
+            const remaining = combination.slice(towel.length);
+            if (checkCombinationPossible(towels, remaining, memo)) {
+                memo.set(key, true);
+                return true;
+            }
         }
     }
-
+    
+    memo.set(key, false);
     return false;
 }
 
@@ -54,54 +72,41 @@ export function part_2(input: string[]): number {
     for(const t of rawTowels.split(", ")) {
         towels.push(translateCombination(t))
     }
-    // group together all lowels which in sum produce another towel
-    const towelGroups: Map<string, string[][]> = new Map()
-    for(const towel of towels) {
-        towelGroups.set(
-            towel.join(""),
-            towelCanBeConstructedFrom(towels, towel)
-        )
-    }
-
-    const groupedTowels = Array.from(towelGroups.keys()).map(towel => towel.split("").map(Number))
-    groupedTowels.sort((a, b) => b.length - a.length)
-    console.log(towelGroups)
+    // Sort towels by length for optimization
+    towels.sort((a, b) => b.length - a.length)
 
     let total = 0;
     for(const comb of rawCombinations.split("\n")) {
-        const combinations = towelCanBeConstructedFrom(groupedTowels, translateCombination(comb))//, new Set())
-        console.log(combinations)
-        /*if(combinations.length) {
-            for(const combination of combinations) {
-                let count = 1;
-                for(const towel of combination) {
-                    count *= towelGroups.get(towel)!.length
-                }
-                console.log(combination, count)
-                total += count
-            }
-        }*/
-       total += combinations.length
+        const combination = translateCombination(comb)
+        const count = countCombinationWays(towels, combination, new Map())
+        total += count
     }
-
+    
     return total
 }
 
-function towelCanBeConstructedFrom(towels: number[][], compareTowel: number[], alreadyExplored?: Set<string>): string[][] {
-    if(alreadyExplored && alreadyExplored.has(compareTowel.join(""))) return []
-    if(alreadyExplored) alreadyExplored.add(compareTowel.join(""))
-    if(compareTowel.length === 0) return [[]]
-    let combinations = []
+function countCombinationWays(towels: number[][], combination: number[], memo: Map<string, number>): number {
+    const key = combination.join("")
+    if (memo.has(key)) return memo.get(key)!
+    
+    if(combination.length === 0) return 1
+    
+    let ways = 0
     for(const towel of towels) {
-        if (towel.length > compareTowel.length) continue;
-        if (towel.every((c, i) => c === compareTowel[i])) {
-            const combs = towelCanBeConstructedFrom(towels, compareTowel.slice(towel.length), alreadyExplored)
-            if(combs.length) {
-                combs.forEach(c => c.unshift(towel.join("")))
-                combinations.push(...combs)
+        if (towel.length > combination.length) continue
+        // Fast check for match using array comparison
+        let matches = true;
+        for (let i = 0; i < towel.length; i++) {
+            if (towel[i] !== combination[i]) {
+                matches = false;
+                break;
             }
         }
+        if (matches) {
+            ways += countCombinationWays(towels, combination.slice(towel.length), memo)
+        }
     }
-
-    return combinations;
+    
+    memo.set(key, ways)
+    return ways
 }
