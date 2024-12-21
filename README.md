@@ -56,6 +56,7 @@ Days I solved:
 | 18 | ✅ | ✅ |
 | 19 | ✅ | ✅ |
 | 20 | ✅ | ✅ |
+| 21 | ✅ |  |
 
 ## Following scripts are available
 
