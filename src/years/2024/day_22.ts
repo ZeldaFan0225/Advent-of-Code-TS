@@ -1,4 +1,4 @@
- export const INPUT_SPLIT = "\n";
+export const INPUT_SPLIT = "\n";
 // 32 = 2**5
 // 64 = 2**6
 // 2048 = 2**11
