@@ -1,117 +1,239 @@
+interface Pos {
+    x: number;
+    y: number;
+}
+
+interface E {
+    p: Pos;
+    path: Pos[];
+}
+
 export const INPUT_SPLIT = "\n";
 
-const NUMERIC_POSITIONS = {
-    /** [y, x] */
-    "A": [3, 2],
-    "0": [3, 1],
-    "1": [2, 0],
-    "2": [2, 1],
-    "3": [2, 2],
-    "4": [1, 0],
-    "5": [1, 1],
-    "6": [1, 2],
-    "7": [0, 0],
-    "8": [0, 1],
-    "9": [0, 2],
-} as const
-type NumericPosition = keyof typeof NUMERIC_POSITIONS
+// Extracted BFS into a helper function
+function findAllPaths(start: Pos, end: Pos, grid: string[], width: number, height: number): string[] {
+    // Helper to add positions
+    const plus = (p1: Pos, p2: Pos): Pos => ({ x: p1.x + p2.x, y: p1.y + p2.y });
+    // Helper to check boundaries
+    const inRange = (pos: Pos): boolean =>
+        pos.x >= 0 && pos.x < width && pos.y >= 0 && pos.y < height;
 
-const DIRECTIONAL_POSTIONS = {
-    "A": [0, 2],
-    "^": [0, 1],
-    "<": [1, 0],
-    "v": [1, 1],
-    ">": [1, 2],
-} as const
-type DirectionalPosition = keyof typeof DIRECTIONAL_POSTIONS
+    const queue: E[] = [{ p: start, path: [start] }];
+    const paths: string[] = [];
+
+    while (queue.length) {
+        const current = queue.shift()!;
+        // If we've reached our destination, build the move string
+        if (current.p.x === end.x && current.p.y === end.y) {
+            let moves = "";
+            for (let i = 0; i < current.path.length - 1; i++) {
+                const p1 = current.path[i]!;
+                const p2 = current.path[i + 1]!;
+                if (p1.y === p2.y) {
+                    moves += (p1.x < p2.x) ? ">" : "<";
+                } else {
+                    moves += (p1.y < p2.y) ? "v" : "^";
+                }
+            }
+            // Append 'A' at the end
+            moves += "A";
+            paths.push(moves);
+            continue;
+        }
+
+        // Enqueue neighbors
+        for (const d of [{ x:1, y:0 }, { x:0, y:1 }, { x:-1, y:0 }, { x:0, y:-1 }]) {
+            const nextPos = plus(current.p, d);
+            if (!inRange(nextPos)) continue;
+            if (grid[nextPos.y]![nextPos.x]! === " ") continue;
+            if (current.path.some(p => p.x === nextPos.x && p.y === nextPos.y)) continue;
+
+            queue.push({ p: nextPos, path: [...current.path, nextPos] });
+        }
+    }
+    return paths;
+}
+
+// Simplified computePaths to call findAllPaths
+function computePaths(pad: string): Map<string, string[]> {
+    const paths = new Map<string, string[]>();
+    const grid = pad.split("\n");
+    const width = grid[0]!.length;
+    const height = grid.length;
+
+    // Gather all non-space positions
+    const positions: Pos[] = [];
+    for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+            if (grid[y]![x]! !== " ") positions.push({ x, y });
+        }
+    }
+
+    // For each pair of non-space positions, find BFS paths
+    for (const start of positions) {
+        const c1 = grid[start.y]![start.x]!;
+        // Put a trivial path from c1 to itself
+        paths.set(`${c1}${c1}`, ["A"]);
+
+        for (const end of positions) {
+            if (start.x === end.x && start.y === end.y) continue;
+            const c2 = grid[end.y]![end.x]!;
+            const allPaths = findAllPaths(start, end, grid, width, height);
+
+            // Sort by length; store only shortest
+            allPaths.sort((a, b) => a.length - b.length);
+            const shortestLen = allPaths[0]!.length;
+            paths.set(`${c1}${c2}`, allPaths.filter(p => p.length === shortestLen));
+        }
+    }
+    return paths;
+}
+
+function findSeq(code: string, paths: Map<string, string[]>): string[] {
+    let key = 'A';
+    let seqs: string[] = [''];
+    
+    for (let i = 0; i < code.length; i++) {
+        const c = code[i]!;
+        const newSeqs: string[] = [];
+        
+        for (const seq of seqs) {
+            const pathKey = `${key}${c}`;
+            const possiblePaths = paths.get(pathKey) || [];
+            for (const path of possiblePaths) {
+                newSeqs.push(seq + path);
+            }
+        }
+        
+        key = c;
+        seqs = newSeqs;
+    }
+    
+    return seqs;
+}
+
+function calcCosts(dirPaths: Map<string, string[]>, nRobots: number): Map<string, number> {
+    let minCosts = new Map<string, number>();
+    
+    for (const [key, paths] of dirPaths.entries()) {
+        minCosts.set(key, Math.min(...paths.map(p => p.length)));
+    }
+
+    for (let robot = 0; robot < nRobots - 1; robot++) {
+        const newMinCosts = new Map<string, number>();
+        
+        for (const [pair, paths] of dirPaths.entries()) {
+            let minCost = Number.MAX_SAFE_INTEGER;
+            
+            for (const path of paths) {
+                let key = 'A';
+                let cost = 0;
+                
+                for (let i = 0; i < path.length; i++) {
+                    const c = path[i]!;
+                    const costKey = `${key}${c}`;
+                    cost += minCosts.get(costKey) || 0;
+                    key = c;
+                }
+                
+                minCost = Math.min(minCost, cost);
+            }
+            
+            if (minCost === Number.MAX_SAFE_INTEGER) {
+                throw new Error("No valid path found");
+            }
+            
+            newMinCosts.set(pair, minCost);
+        }
+        
+        minCosts = newMinCosts;
+    }
+
+    return minCosts;
+}
 
 export function part_1(input: string[]): number {
-    let result = 0
-    for(const code of input) {
-        result += getScoreForCode(code, 2)
-    }
-    
-    return result
-}
+    const numPad = `789
+456
+123
+ 0A`;
 
-export function part_2(input: string): number {
-    let result = 0
-    for(const code of input) {
-        result += getScoreForCode(code, 25)
-        console.log(result)
-    }
-    
-    return result
-}
+    const numPaths = computePaths(numPad);
+    const dirPad = ` ^A
+<v>`;
 
-function getScoreForCode(code: string, robotLayers: number): number {
-    let sequence = numericToDirectional(code)
+    const dirPaths = computePaths(dirPad);
+    const costs = calcCosts(dirPaths, 2);
 
-    for(let i = 0; i < robotLayers; i++) {
-        sequence = directionalToDirectional(sequence)
-    }
+    let s = 0;
+    for (const code of input) {
+        const seqs = findSeq(code, numPaths);
+        let minCost = Number.MAX_SAFE_INTEGER;
 
-    const result = parseInt(code.slice(0, -1)) * sequence.length;
-    return result
-}
+        for (const seq of seqs) {
+            let key = 'A';
+            let cost = 0;
 
-function numericToDirectional(code: string): string {
-    let [y, x] = NUMERIC_POSITIONS["A"] as [number, number]
-    let sequence = ""
-    for(let char of code) {
-        let [ky, kx] = NUMERIC_POSITIONS[char as NumericPosition]
-        let [dy, dx] = [ky - y, kx - x]
+            for (let i = 0; i < seq.length; i++) {
+                const c = seq[i]!;
+                const costKey = `${key}${c}`;
+                cost += costs.get(costKey) || 0;
+                key = c;
+            }
 
-        if(x === 0 && ky === 3) {
-            // when moving from the first column to the last row
-            if(dx > 0) sequence += ">".repeat(dx)
-            if(dy > 0) sequence += "v".repeat(dy)
-        } else if(y === 3 && kx === 0) {
-            // when moving from the last row to the first column
-            if(dy < 0) sequence += "^".repeat(-dy)
-            if(dx < 0) sequence += "<".repeat(-dx)
-        } else {
-            // priority to reduce required moves in next layer
-            if(dx < 0) sequence += "<".repeat(-dx)
-            if(dy > 0) sequence += "v".repeat(dy)
-            if(dx > 0) sequence += ">".repeat(dx)
-            if(dy < 0) sequence += "^".repeat(-dy)
-        }
-        sequence += "A"
-
-        ;[y, x] = [ky, kx]
-    }
-
-    return sequence
-}
-
-function directionalToDirectional(sequence: string): string {
-    let [y, x] = DIRECTIONAL_POSTIONS["A"] as [number, number]
-    let code = ""
-    for(let char of sequence) {
-        let [ky, kx] = DIRECTIONAL_POSTIONS[char as DirectionalPosition]
-        let [dy, dx] = [ky - y, kx - x]
-
-        // priority: < v > ^ (due to the way the next robot in line has to input this sequence)
-        if(y === 0 && kx === 0) {
-            // when moving from first row to first column
-            if(dy > 0) code += "v".repeat(dy)
-            if(dx < 0) code += "<".repeat(-dx)
-        } else if(x === 0 && ky === 0) {
-            // when moving from the first column to the last row
-            if(dx > 0) code += ">".repeat(dx)
-            if(dy < 0) code += "^".repeat(-dy)
-        } else {
-            if(dx < 0) code += "<".repeat(-dx)
-            if(dy > 0) code += "v".repeat(dy)
-            if(dx > 0) code += ">".repeat(dx)
-            if(dy < 0) code += "^".repeat(-dy)
+            minCost = Math.min(minCost, cost);
         }
 
-        code += "A"
+        if (minCost === Number.MAX_SAFE_INTEGER) {
+            throw new Error("No valid path found");
+        }
 
-        ;[y, x] = [ky, kx]
+        const iPart = parseInt(code.substring(0, 3));
+        s += iPart * minCost;
     }
 
-    return code
+    return s;
+}
+
+export function part_2(input: string[]): number {
+    const numPad = `789
+456
+123
+ 0A`;
+
+    const numPaths = computePaths(numPad);
+    const dirPad = ` ^A
+<v>`;
+
+    const dirPaths = computePaths(dirPad);
+    const costs = calcCosts(dirPaths, 25);
+
+    let s = 0;
+    for (const code of input) {
+        const seqs = findSeq(code, numPaths);
+        let minCost = Number.MAX_SAFE_INTEGER;
+
+        for (const seq of seqs) {
+            let key = 'A';
+            let cost = 0;
+
+            for (let i = 0; i < seq.length; i++) {
+                const c = seq[i]!;
+                const costKey = `${key}${c}`;
+                cost += costs.get(costKey) || 0;
+                key = c;
+            }
+
+            minCost = Math.min(minCost, cost);
+        }
+
+        if (minCost === Number.MAX_SAFE_INTEGER) {
+            throw new Error("No valid path found");
+        }
+
+        const iPart = parseInt(code.substring(0, 3));
+        s += iPart * minCost;
+    }
+
+    return s;
 }
