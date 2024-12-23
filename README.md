@@ -62,11 +62,11 @@ Days I solved:
 
 ## Following scripts are available
 
-`npm run run` => Runs the code  
-`npm run aoc` => Runs a day of advent of code  
-`npm run aoc_compile` => Compiles the code and runs a day of advent of code  
-`npm run compile` => Compiles the code  
-`npm run init_day` => Creates an empty day with input
+`node --run run` => Runs the code  
+`node --run aoc` => Runs a day of advent of code  
+`node --run aoc_compile` => Compiles the code and runs a day of advent of code  
+`node --run compile` => Compiles the code  
+`node --run init_day` => Creates an empty day with input
 
 ### Examples
 
