@@ -1,24 +1,31 @@
 export const INPUT_SPLIT = "\n";
 
 export function part_1(input: string[]): number {
-    const groups = new Set<string>();
     const nodes = buildGraph(input);
-
-    for(const [nodeA, neighborsA] of nodes.entries()) {
-        for(const nodeB of neighborsA) {
-            for(const nodeC of nodes.get(nodeB)!) {
+    const triangles = new Set<string>();
+    
+    for (const [nodeA, neighborsA] of nodes) {
+        for (const nodeB of neighborsA) {
+            const neighborsB = nodes.get(nodeB)!;
+            
+            // Look for common neighbors that form triangles
+            for (const nodeC of neighborsA) {
+                if (nodeC === nodeB) continue;
+                
                 const neighborsC = nodes.get(nodeC)!;
-                if(neighborsC.has(nodeA)) {
-                    const group = [nodeA, nodeB, nodeC].sort();
-                    if(group.some(g => g[0]! === "t")) {
-                        groups.add(group.join("-"));
+                if (neighborsB.has(nodeC) && neighborsC.has(nodeA)) {
+                    // We found a triangle, now check if it contains a 't' node
+                    if (nodeA[0] === 't' || nodeB[0] === 't' || nodeC[0] === 't') {
+                        // Sort nodes to ensure unique representation
+                        const sortedNodes = [nodeA, nodeB, nodeC].sort();
+                        triangles.add(sortedNodes.join('-'));
                     }
                 }
             }
         }
     }
 
-    return groups.size
+    return triangles.size;
 }
 
 export function part_2(input: string[]): string {
