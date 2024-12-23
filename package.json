@@ -22,10 +22,14 @@
   "homepage": "https://github.com/ZeldaFan0225/Advent-of-Code-TS#readme",
   "devDependencies": {
     "@types/node": "^20.10.4",
-    "typescript": "^5.3.3"
+    "typescript": "^5.7.2"
   },
   "dependencies": {
-    "commander": "^11.1.0",
+    "commander": "^12.1.0",
     "z3-solver": "^4.12.4"
+  },
+  "engineStrict": true,
+  "engines": {
+    "node": ">=22.0.0"
   }
 }

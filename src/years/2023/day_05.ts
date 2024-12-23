@@ -22,7 +22,7 @@ export function part_1(lines: string[]): number {
         for(let i in seeds) {
             for(let map of category) {
                 if(seeds[i]! >= map.source_start && seeds[i]! <= map.source_end) {
-                    seeds[i] += map.diff
+                    seeds[i]! += map.diff
                     break;
                 }
             }
