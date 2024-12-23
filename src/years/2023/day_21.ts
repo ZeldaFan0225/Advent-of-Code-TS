@@ -36,7 +36,7 @@ function findAmountReachable(map: Tile[][], steps: number, start: Coordinate, pa
     queue.set(`${start.x},${start.y},0`, map[start.y]![start.x]!)
     const last_tiles = new Set<string>()
     while(queue.size) {
-        const temp = queue.keys().next().value
+        const temp = queue.keys().next().value!
         const process = queue.get(temp)
         if(!process) throw new Error("Invalid process")
         queue.delete(temp)

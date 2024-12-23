@@ -58,6 +58,7 @@ Days I solved:
 | 20 | ✅ | ✅ |
 | 21 | ✅ | ✅ [logic borrowed from](https://github.com/DJtheRedstoner/AoC2024/blob/main/src/main/java/me/djtheredstoner/aoc2024/days/Day21.java) |
 | 22 | ✅ | ✅ |
+| 23 | ✅ | ✅ |
 
 ## Following scripts are available
 
@@ -69,8 +70,8 @@ Days I solved:
 
 ### Examples
 
-`npm run aoc_compile -- 1 -s` Runs day 1 of the current year with sample data  
-`npm run init_day -- 2` Inits day 2 of the current year  
+`node --run aoc_compile -- 1 -s` Runs day 1 of the current year with sample data  
+`node --run init_day -- 2` Inits day 2 of the current year  
 
 ## Credits
 

@@ -1,4 +1,5 @@
 {
+    "_version": "22.0.0",
     "compilerOptions": {
         "target": "esnext",
         "module": "commonjs",
