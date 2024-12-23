@@ -1,4 +1,5 @@
 export const INPUT_SPLIT = "\n";
+
 export function part_1(input: string[]): number {
     const groups = new Set<string>();
     const nodes = buildGraph(input);
@@ -45,27 +46,59 @@ function buildGraph(relations: string[]) {
     return nodes;
 }
 
+function orderVerticesByDegree(nodes: Map<string, Set<string>>): string[] {
+    // Order vertices by degree (number of neighbors) 
+    const degrees = new Map<string, number>();
+    for (const [node, neighbors] of nodes) {
+        degrees.set(node, neighbors.size);
+    }
+    return Array.from(nodes.keys()).sort((a, b) => degrees.get(b)! - degrees.get(a)!);
+}
+
 function findLargestClique(nodes: Map<string, Set<string>>) {
     let maximalClique = new Set<string>();
+    const orderedVertices = orderVerticesByDegree(nodes);
 
-    // Clique problem solved with bron-kerbosch algorithm
+    // Clique problem solved with bron-kerbosch algorithm with pivot
     function bronKerbosch(r: Set<string>, p: Set<string>, x: Set<string>) {
-        if(p.size === 0 && x.size === 0) {
-            if(maximalClique.size < r.size) {
+        if (p.size === 0 && x.size === 0) {
+            if (maximalClique.size < r.size) {
                 maximalClique = r;
             }
             return;
         }
 
-        for(const node of p) {
+        // Choose pivot vertex that maximizes |N(u) ∩ P|
+        let pivot = null;
+        let maxIntersection = -1;
+        for (const u of new Set([...p, ...x])) {
+            const intersection = p.intersection(nodes.get(u)!).size;
+            if (intersection > maxIntersection) {
+                maxIntersection = intersection;
+                pivot = u;
+            }
+        }
+
+        // Only process vertices not connected to pivot
+        const verticesToProcess = pivot ? 
+            p.difference(nodes.get(pivot)!) :
+            p;
+
+        for (const node of verticesToProcess) {
             const nodeNeighbors = nodes.get(node)!;
-            bronKerbosch(new Set([...r, node]), p.intersection(nodeNeighbors), x.intersection(nodeNeighbors));
+            bronKerbosch(
+                new Set([...r, node]), 
+                p.intersection(nodeNeighbors), 
+                x.intersection(nodeNeighbors)
+            );
             p.delete(node);
             x.add(node);
         }
     }
 
-    bronKerbosch(new Set(), new Set(nodes.keys()), new Set());
+    // Start with ordered vertices
+    const initialP = new Set(orderedVertices);
+    bronKerbosch(new Set(), initialP, new Set());
 
     return maximalClique;
 }
