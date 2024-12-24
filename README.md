@@ -59,6 +59,7 @@ Days I solved:
 | 21 | ✅ | ✅ [logic borrowed from](https://github.com/DJtheRedstoner/AoC2024/blob/main/src/main/java/me/djtheredstoner/aoc2024/days/Day21.java) |
 | 22 | ✅ | ✅ |
 | 23 | ✅ | ✅ |
+| 23 | ✅ | ❌ |
 
 ## Following scripts are available
 
