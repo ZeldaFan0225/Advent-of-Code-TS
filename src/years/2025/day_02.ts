@@ -4,11 +4,10 @@ function bruteForce1(rangeStart: number, rangeEnd: number): number {
     const diff = rangeEnd - rangeStart;
     let count = 0;
     for(let i = 0; i <= diff; i++) {
-        const current = rangeStart + i + "";
-        if(current.length % 2 === 1) {
-            continue;
-        }
-        if(current.slice(0, current.length/2) === current.slice(current.length/2)) {
+        const num = rangeStart + i;
+        const digits = Math.floor(Math.log10(num) + 1);
+        if(digits % 2 === 1) continue;
+        if(Math.floor(num / 10**(digits/2)) === num % 10**(digits/2)) {
             count+=rangeStart + i;
         }
     }
@@ -30,10 +29,9 @@ function bruteForce2(rangeStart: number, rangeEnd: number): number {
     for(let i = 0; i <= diff; i++) {
         const current = rangeStart + i + "";
         const recurring = /^(\d+)(\1){1,}$/.test(current);
-        
+
         if(recurring) {
             count+=rangeStart + i;
-            console.log(current)
         }
     }
     return count;
