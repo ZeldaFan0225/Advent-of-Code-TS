@@ -62,6 +62,22 @@ Days I solved:
 | 24 | ✅ | ❌ |
 | 25 | ✅ |  |
 
+**2025**
+| Day | Part 1 | Part 2 |
+|---|---|---|
+| 1 | ✅ | ✅ |
+| 2 | ✅ | ✅ |
+| 3 | ✅ | ✅ |
+| 4 |  |  |
+| 5 |  |  |
+| 6 |  |  |
+| 7 |  |  |
+| 8 |  |  |
+| 9 |  |  |
+| 10 |  |  |
+| 11 |  |  |
+| 12 |  |  |
+
 ## Following scripts are available
 
 `node --run run` => Runs the code  
