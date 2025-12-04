@@ -1,60 +1,63 @@
 export const INPUT_SPLIT = "\n";
 
-function removePaperRolls(input: string[][]): number {
-    let removed = 0;
-    const positions = new Set<string>();
-    for(let y = 0; y < input.length; y++) {
-        for(let x = 0; x < input[y]!.length; x++) {
-            const res = removePaperRoll(input, y, x);
-            removed += res;
-            if(res) positions.add(`${y},${x}`);
+const around = [
+    [-1, -1], [-1, 0], [-1, 1],
+    [0, -1],          [0, 1],
+    [1, -1], [1, 0], [1, 1],
+] as const
+
+function parseMaze(grid: string[], logShift: number) {
+    const paperRolls = new Set<number>();
+    for(let y = 0; y < grid.length; y++) {
+        for(let x = 0; x < grid[y]!.length; x++) {
+            if(grid[y]![x] === '@') {
+                // combine x and y into a single number for easier storage
+                paperRolls.add(x | (y << logShift));
+            }
         }
     }
-    for(const pos of positions) {
-        const [yStr, xStr] = pos.split(",");
-        const y = Number(yStr);
-        const x = Number(xStr);
-        input[y]![x] = ".";
-    }
-    return removed;
+    return paperRolls;
 }
 
-function removePaperRoll(input: string[][], y: number, x: number): number {
-    if(input[y]![x] !== "@") {
-        return 0;
-    }
-    const around = [
-        [-1, -1], [-1, 0], [-1, 1],
-        [0, -1],          [0, 1],
-        [1, -1], [1, 0], [1, 1],
-    ] as const;
-    let positions = new Set<string>();
-    for(const [dy, dx] of around) {
-        const newY = y + dy;
-        const newX = x + dx;
-        if(newY < 0 || newY >= input.length || newX < 0 || newX >= input[0]!.length) {
-            continue;
-        }
-        if(input[newY]![newX] === "@") {
-            positions.add(`${newY},${newX}`);
-        }
-    }
+function removePaperRolls(paperRolls: Set<number>, logShift: number) {
+    let removedCount = 0;
+    let remove = new Set<number>();
+    for(const roll of paperRolls) {
+        const x = roll & ((1 << logShift) - 1);
+        const y = roll >> logShift;
 
-    return positions.size < 4 ? 1 : 0;
+        let count = 0;
+        for(const [dx, dy] of around) {
+            const neighbor = (x + dx) | ((y + dy) << logShift);
+            if(paperRolls.has(neighbor)) {
+                count++;
+            }
+        }
+        if(count < 4) {
+            remove.add(roll);
+            removedCount++;
+        }
+    }
+    for (const roll of remove) {
+        paperRolls.delete(roll);
+    }
+    return remove.size;
 }
 
 export function part_1(input: string[]): number {
-    const grid = input.map(line => line.split(""));
-    return removePaperRolls(grid);
+    const maxShift = Math.max(Math.ceil(Math.log2(input.length)), Math.ceil(Math.log2(input[0]!.length)));
+    const paperRolls = parseMaze(input, maxShift);
+    return removePaperRolls(paperRolls, maxShift);
 }
 
 export function part_2(input: string[]): number {
-    const grid = input.map(line => line.split(""));
-    let lastRemoved = -1;
+    const maxShift = Math.max(Math.ceil(Math.log2(input.length)), Math.ceil(Math.log2(input[0]!.length)));
+    const paperRolls = parseMaze(input, maxShift);
+    let previousCount = -1;
     let totalRemoved = 0;
-    while(lastRemoved !== 0) {
-        lastRemoved = removePaperRolls(grid);
-        totalRemoved += lastRemoved;
+    while(previousCount !== 0) {
+        previousCount = removePaperRolls(paperRolls, maxShift);
+        totalRemoved += previousCount;
     }
     return totalRemoved;
 }
