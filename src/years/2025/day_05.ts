@@ -37,15 +37,23 @@ export function part_1(input: [string, string]): number {
     
     ranges = combineRanges(ranges);
 
-    const ingredients = new Set(ingredientsRaw.split("\n").map(Number));
+    const ingredients = ingredientsRaw.split("\n").map(Number);
 
     let count = 0;
-    outer:
+    // binary search range
     for(const ingredient of ingredients) {
-        for(const range of ranges) {
-            if(ingredient >= range.start && ingredient <= range.end) {
+        let lower = 0
+        let upper = ranges.length-1
+        while(lower <= upper) {
+            const mid = Math.floor((lower + upper) / 2);
+            const range = ranges[mid]!;
+            if(ingredient < range.start) {
+                upper = mid - 1;
+            } else if(ingredient > range.end) {
+                lower = mid + 1;
+            } else {
                 count++;
-                continue outer;
+                break;
             }
         }
     }
