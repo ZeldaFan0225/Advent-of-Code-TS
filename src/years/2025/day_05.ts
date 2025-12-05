@@ -3,28 +3,23 @@ export const INPUT_SPLIT = "\n\n";
 function combineRanges(ranges: { start: number; end: number }[]): { start: number; end: number }[] {
     if (ranges.length === 0) return [];
     ranges.sort((a, b) => a.start - b.start);
-    let removeRanges = new Set<number>();
+    const result: { start: number; end: number }[] = [];
     for(let i = 0; i < ranges.length; i++) {
-        if(removeRanges.has(i)) {
+        const range = ranges[i]!;
+        const lastRange = result[result.length-1];
+        if(!lastRange) {
+            result.push(range)
             continue;
         }
-        const range = ranges[i]!;
-        for(let j = i+1; j < ranges.length; j++) {
-            if(removeRanges.has(j)) {
-                continue;
+        if(range.start <= lastRange.end + 1) {
+            if(range.end > lastRange.end) {
+                lastRange.end = range.end;
             }
-            const procRange = ranges[j]!;
-            if(procRange.start <= range.end) {
-                if(procRange.end <= range.end) {
-                    removeRanges.add(j);
-                } else {
-                    removeRanges.add(j);
-                    range.end = procRange.end;
-                }
-            }
+        } else {
+            result.push(range)
         }
     }
-    return ranges.filter((_, index) => !removeRanges.has(index));
+    return result;
 }
 
 export function part_1(input: [string, string]): number {
