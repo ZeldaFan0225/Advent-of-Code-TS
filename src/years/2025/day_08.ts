@@ -8,7 +8,6 @@ interface JunctionBox {
 }
 
 function distance(a: JunctionBox, b: JunctionBox): number {
-    //return Math.abs(a.x - b.x) + Math.abs(a.y - b.y) + Math.abs(a.z - b.z);
     return Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2) + Math.pow(a.z - b.z, 2));
 }
 
