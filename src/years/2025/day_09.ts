@@ -51,6 +51,11 @@ export function part_2(input: string[]): number {
             yEdgeMap.get(y1)!.push([Math.min(x1, x2), Math.max(x1, x2)]);
         }
     }
+    
+    // Pre-sort keys for binary search
+    const sortedXKeys = [...xEdgeMap.keys()].sort((a, b) => a - b);
+    const sortedYKeys = [...yEdgeMap.keys()].sort((a, b) => a - b);
+    
     const sizes = coordinates
         .map(([a, b], i) =>
             coordinates
@@ -62,27 +67,27 @@ export function part_2(input: string[]): number {
                     const maxY = Math.max(b, d);
                     
                     // Check if any vertical edge crosses through the interior of the rectangle
-                    for (const [x, edges] of xEdgeMap) {
-                        if (x > minX && x < maxX) {
-                            // This vertical edge's x is strictly inside the rectangle
-                            for (const [y1, y2] of edges) {
-                                // Check if the edge crosses through the rectangle's y range
-                                if (y1 < maxY && y2 > minY) {
-                                    return -1;
-                                }
+                    for (const x of sortedXKeys) {
+                        if (x <= minX) continue;
+                        if (x >= maxX) break;
+                        // This vertical edge's x is strictly inside the rectangle
+                        for (const [y1, y2] of xEdgeMap.get(x)!) {
+                            // Check if the edge crosses through the rectangle's y range
+                            if (y1 < maxY && y2 > minY) {
+                                return -1;
                             }
                         }
                     }
                     
                     // Check if any horizontal edge crosses through the interior of the rectangle
-                    for (const [y, edges] of yEdgeMap) {
-                        if (y > minY && y < maxY) {
-                            // This horizontal edge's y is strictly inside the rectangle
-                            for (const [x1, x2] of edges) {
-                                // Check if the edge crosses through the rectangle's x range
-                                if (x1 < maxX && x2 > minX) {
-                                    return -1;
-                                }
+                    for (const y of sortedYKeys) {
+                        if (y <= minY) continue;
+                        if (y >= maxY) break;
+                        // This horizontal edge's y is strictly inside the rectangle
+                        for (const [x1, x2] of yEdgeMap.get(y)!) {
+                            // Check if the edge crosses through the rectangle's x range
+                            if (x1 < maxX && x2 > minX) {
+                                return -1;
                             }
                         }
                     }
