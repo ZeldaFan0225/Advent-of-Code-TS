@@ -75,8 +75,8 @@ Days I solved:
 | 8 | ✅ | ✅ |
 | 9 | ✅ | ✅ |
 | 10 | ✅ | ❌ |
-| 11 |  |  |
-| 12 |  |  |
+| 11 | ✅ | ✅ |
+| 12 | ❌ |  |
 
 ## Following scripts are available
 
